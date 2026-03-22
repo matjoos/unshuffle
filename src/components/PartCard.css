@@ -51,6 +51,19 @@
   font-size: 12px;
   color: var(--text-muted);
   margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.part-badge-printed {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #e3f2fd;
+  color: #1565c0;
 }
 
 .part-card-counts {

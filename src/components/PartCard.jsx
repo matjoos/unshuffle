@@ -18,7 +18,12 @@ export default function PartCard({ partKey, entry, setNum }) {
       </div>
       <div className="part-card-info">
         <div className="part-card-name">{entry.name}</div>
-        <div className="part-card-meta">{entry.partNum}</div>
+        <div className="part-card-meta">
+          {entry.partNum}
+          {/pr\d|pat\d/.test(entry.partNum) && (
+            <span className="part-badge-printed">Printed</span>
+          )}
+        </div>
         <div className="part-card-counts">
           <span>Need: {setData.needed}</span>
           {setData.found > 0 && (

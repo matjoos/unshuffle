@@ -14,6 +14,11 @@ export default function Footer() {
           Source (AGPL)
         </a>
       </p>
+      <p>
+        <a href="https://github.com/sponsors/matjoos" target="_blank" rel="noopener noreferrer">
+          Sponsor
+        </a>
+      </p>
     </footer>
   )
 }

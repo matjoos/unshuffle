@@ -15,7 +15,7 @@ dist-ssr
 
 # Plans and notes (local only)
 UNSHUFFLE-PROJECT-PLAN.md
-.claude/plans/
+.claude/
 
 # Editor directories and files
 .vscode/*
