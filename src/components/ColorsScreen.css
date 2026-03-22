@@ -1,0 +1,64 @@
+.colors-screen h2 {
+  margin-top: 16px;
+}
+
+.colors-hint {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 4px 0 16px;
+}
+
+.colors-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.color-swatch {
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.color-swatch:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow);
+}
+
+.swatch-name {
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.swatch-count {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.btn-summary {
+  width: 100%;
+  padding: 12px;
+}
