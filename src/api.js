@@ -50,6 +50,27 @@ export async function fetchSetParts(apiKey, setNum) {
   return parts
 }
 
+// Fetch Rebrickable → BrickLink color ID mapping
+let brickLinkColorCache = null
+
+export async function fetchBrickLinkColorMap(apiKey) {
+  if (brickLinkColorCache) return brickLinkColorCache
+  const map = {}
+  let url = '/colors/?page_size=200'
+  while (url) {
+    const data = await apiFetch(apiKey, url)
+    for (const color of data.results) {
+      const blIds = color.external_ids?.BrickLink?.ext_ids
+      if (blIds && blIds.length > 0) {
+        map[color.id] = blIds[0]
+      }
+    }
+    url = data.next ? data.next.replace(BASE_URL, '') : null
+  }
+  brickLinkColorCache = map
+  return map
+}
+
 export function mergeInventories(fetchedSets) {
   const inventory = {}
   for (const [setNum, parts] of Object.entries(fetchedSets)) {

@@ -13,6 +13,10 @@ dist-ssr
 *.local
 .env
 
+# Plans and notes (local only)
+UNSHUFFLE-PROJECT-PLAN.md
+.claude/plans/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

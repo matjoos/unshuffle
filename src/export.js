@@ -1,4 +1,4 @@
-export function buildBrickLinkXML(inventory) {
+export function buildBrickLinkXML(inventory, colorMap) {
   const items = []
 
   for (const entry of Object.values(inventory)) {
@@ -8,10 +8,11 @@ export function buildBrickLinkXML(inventory) {
     }
     if (totalMissing === 0) continue
 
+    const blColorId = colorMap?.[entry.colorId]
     items.push(
       `  <ITEM>
     <ITEMTYPE>P</ITEMTYPE>
-    <ITEMID>${escapeXml(entry.partNum)}</ITEMID>
+    <ITEMID>${escapeXml(entry.partNum)}</ITEMID>${blColorId != null ? `\n    <COLOR>${blColorId}</COLOR>` : ''}
     <MINQTY>${totalMissing}</MINQTY>
   </ITEM>`
     )
