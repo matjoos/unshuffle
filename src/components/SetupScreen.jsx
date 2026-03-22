@@ -16,7 +16,6 @@ export default function SetupScreen() {
   function normalizeSetNum(input) {
     const trimmed = input.trim()
     if (!trimmed) return null
-    // Add "-1" suffix if not present (most sets use -1)
     if (!trimmed.includes('-')) return `${trimmed}-1`
     return trimmed
   }

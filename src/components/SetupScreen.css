@@ -125,3 +125,28 @@
   padding: 14px;
   font-size: 16px;
 }
+
+.setup-advanced {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.setup-advanced-toggle {
+  background: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.setup-advanced-toggle:hover {
+  color: var(--text);
+}
+
+.setup-advanced-content {
+  margin-top: 8px;
+}
+
+.setup-advanced-content input {
+  width: 100%;
+}
