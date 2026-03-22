@@ -15,18 +15,22 @@ export default function PickingScreen() {
   const colorName = colorParts.length > 0 ? colorParts[0][1].colorName : ''
   const colorHex = colorParts.length > 0 ? colorParts[0][1].colorHex : '999'
 
-  // Separate done vs remaining, expand per-set
-  const cards = []
+  // Group by set
+  const bySet = {}
   for (const [partKey, entry] of colorParts) {
     for (const setNum of Object.keys(entry.sets)) {
+      if (!bySet[setNum]) bySet[setNum] = []
       const setData = entry.sets[setNum]
       const done = setData.found + setData.missing >= setData.needed
-      cards.push({ partKey, entry, setNum, done })
+      bySet[setNum].push({ partKey, entry, setNum, done })
     }
   }
 
-  const remaining = cards.filter((c) => !c.done)
-  const done = cards.filter((c) => c.done)
+  // Count total remaining cards
+  let totalRemaining = 0
+  for (const cards of Object.values(bySet)) {
+    totalRemaining += cards.filter((c) => !c.done).length
+  }
 
   return (
     <div className="picking-screen">
@@ -45,32 +49,54 @@ export default function PickingScreen() {
           {colorName}
         </div>
         <span className="picking-count">
-          {remaining.length} left
+          {totalRemaining} left
         </span>
       </div>
 
-      <div className="picking-list">
-        {remaining.map(({ partKey, entry, setNum }) => (
-          <PartCard
-            key={`${partKey}:${setNum}`}
-            partKey={partKey}
-            entry={entry}
-            setNum={setNum}
-            setName={sets[setNum]?.name || setNum}
-          />
-        ))}
-        {done.map(({ partKey, entry, setNum }) => (
-          <PartCard
-            key={`${partKey}:${setNum}`}
-            partKey={partKey}
-            entry={entry}
-            setNum={setNum}
-            setName={sets[setNum]?.name || setNum}
-          />
-        ))}
-      </div>
+      {Object.entries(bySet).map(([setNum, cards]) => {
+        const setInfo = sets[setNum]
+        const remaining = cards.filter((c) => !c.done)
+        const done = cards.filter((c) => c.done)
+        const allDone = remaining.length === 0
 
-      {remaining.length === 0 && (
+        return (
+          <div key={setNum} className="picking-set-group">
+            <div className={`picking-set-header ${allDone ? 'picking-set-done' : ''}`}>
+              {setInfo?.imgUrl && (
+                <img src={setInfo.imgUrl} alt="" className="picking-set-img" />
+              )}
+              <div className="picking-set-info">
+                <strong>{setInfo?.name || setNum}</strong>
+                <span className="picking-set-num">{setNum}</span>
+              </div>
+              <span className="picking-set-status">
+                {allDone ? '\u2713 Done' : `${remaining.length} parts left`}
+              </span>
+            </div>
+
+            <div className="picking-list">
+              {remaining.map(({ partKey, entry, setNum: sn }) => (
+                <PartCard
+                  key={`${partKey}:${sn}`}
+                  partKey={partKey}
+                  entry={entry}
+                  setNum={sn}
+                />
+              ))}
+              {done.map(({ partKey, entry, setNum: sn }) => (
+                <PartCard
+                  key={`${partKey}:${sn}`}
+                  partKey={partKey}
+                  entry={entry}
+                  setNum={sn}
+                />
+              ))}
+            </div>
+          </div>
+        )
+      })}
+
+      {totalRemaining === 0 && (
         <div className="picking-alldone">
           All {colorName} parts resolved!
         </div>

@@ -1,7 +1,7 @@
 import { useAppState } from '../context.jsx'
 import './PartCard.css'
 
-export default function PartCard({ partKey, entry, setNum, setName }) {
+export default function PartCard({ partKey, entry, setNum }) {
   const { dispatch } = useAppState()
   const setData = entry.sets[setNum]
   const remaining = setData.needed - setData.found - setData.missing
@@ -18,9 +18,7 @@ export default function PartCard({ partKey, entry, setNum, setName }) {
       </div>
       <div className="part-card-info">
         <div className="part-card-name">{entry.name}</div>
-        <div className="part-card-meta">
-          {setName} &middot; {entry.partNum}
-        </div>
+        <div className="part-card-meta">{entry.partNum}</div>
         <div className="part-card-counts">
           <span>Need: {setData.needed}</span>
           {setData.found > 0 && (
