@@ -12,6 +12,13 @@ export default function SetupScreen() {
 
   const sets = state.sets
   const hasSets = Object.keys(sets).length > 0
+  const hasInventory = Object.keys(state.inventory).length > 0
+
+  const loadedSetNums = new Set()
+  for (const entry of Object.values(state.inventory)) {
+    for (const s of Object.keys(entry.sets)) loadedSetNums.add(s)
+  }
+  const pendingSetNums = Object.keys(sets).filter((n) => !loadedSetNums.has(n))
 
   function normalizeSetNum(input) {
     const trimmed = input.trim()
@@ -44,19 +51,27 @@ export default function SetupScreen() {
 
   async function handleStart() {
     if (!hasSets) return
+    if (hasInventory && pendingSetNums.length === 0) {
+      dispatch({ type: 'SET_SCREEN', screen: 'colors' })
+      return
+    }
     setError(null)
     setLoading(true)
 
     try {
+      const toFetch = hasInventory ? pendingSetNums : Object.keys(sets)
       const fetched = {}
-      const setNums = Object.keys(sets)
-      for (let i = 0; i < setNums.length; i++) {
-        const setNum = setNums[i]
-        setLoadingMessage(`Fetching ${sets[setNum].name} (${i + 1}/${setNums.length})...`)
+      for (let i = 0; i < toFetch.length; i++) {
+        const setNum = toFetch[i]
+        setLoadingMessage(`Fetching ${sets[setNum].name} (${i + 1}/${toFetch.length})...`)
         fetched[setNum] = await fetchSetParts(state.apiKey, setNum)
       }
-      const inventory = mergeInventories(fetched)
-      dispatch({ type: 'LOAD_INVENTORY', inventory })
+      const built = mergeInventories(fetched)
+      if (hasInventory) {
+        dispatch({ type: 'MERGE_INVENTORY', additions: built })
+      } else {
+        dispatch({ type: 'LOAD_INVENTORY', inventory: built })
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -143,7 +158,13 @@ export default function SetupScreen() {
             onClick={handleStart}
             disabled={loading}
           >
-            {loading ? loadingMessage || 'Loading...' : 'Start Sorting'}
+            {loading
+              ? loadingMessage || 'Loading...'
+              : hasInventory
+              ? pendingSetNums.length > 0
+                ? `Add ${pendingSetNums.length} set${pendingSetNums.length > 1 ? 's' : ''}`
+                : 'Back to Sorting'
+              : 'Start Sorting'}
           </button>
         </div>
       )}

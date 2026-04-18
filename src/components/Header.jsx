@@ -41,6 +41,14 @@ export default function Header() {
         Unshuffle
       </h1>
       <div className="header-actions">
+        {hasData && state.screen !== 'setup' && (
+          <button
+            className="header-btn"
+            onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'setup' })}
+          >
+            Add sets
+          </button>
+        )}
         <button className="header-btn" onClick={() => fileInputRef.current?.click()}>
           Import
         </button>

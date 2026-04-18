@@ -30,6 +30,21 @@ function reducer(state, action) {
     case 'LOAD_INVENTORY':
       return { ...state, inventory: action.inventory, screen: 'colors' }
 
+    case 'MERGE_INVENTORY': {
+      const merged = { ...state.inventory }
+      for (const [key, newEntry] of Object.entries(action.additions)) {
+        if (!merged[key]) {
+          merged[key] = newEntry
+        } else {
+          merged[key] = {
+            ...merged[key],
+            sets: { ...merged[key].sets, ...newEntry.sets },
+          }
+        }
+      }
+      return { ...state, inventory: merged, screen: 'colors' }
+    }
+
     case 'MARK_FOUND': {
       const entry = state.inventory[action.partKey]
       const setData = entry.sets[action.setNum]
