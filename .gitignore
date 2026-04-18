@@ -17,6 +17,9 @@ dist-ssr
 UNSHUFFLE-PROJECT-PLAN.md
 .claude/
 
+# Secrets
+APIkey
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
