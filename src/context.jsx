@@ -165,6 +165,28 @@ export function useAppState() {
   return ctx
 }
 
+export function exportStateToFile(state) {
+  const { apiKey: _, ...safe } = state
+  const blob = new Blob([JSON.stringify(safe, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `unshuffle-${new Date().toISOString().slice(0, 10)}.json`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+export async function readStateFromFile(file) {
+  const text = await file.text()
+  const parsed = JSON.parse(text)
+  if (parsed.version !== STATE_VERSION) {
+    throw new Error(`Unsupported file version (${parsed.version})`)
+  }
+  return parsed
+}
+
 export function getSetProgress(inventory, setNum) {
   let totalNeeded = 0
   let totalResolved = 0
