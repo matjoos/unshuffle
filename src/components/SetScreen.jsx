@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useAppState } from '../context.jsx'
 import PartCard from './PartCard.jsx'
 import ProgressBar from './ProgressBar.jsx'
@@ -11,48 +11,66 @@ export default function SetScreen() {
   const setNum = state.activeSetNum
   const setInfo = state.sets[setNum]
 
-  // Collect every inventory entry belonging to this set
-  const items = []
-  for (const [partKey, entry] of Object.entries(state.inventory)) {
-    const setData = entry.sets[setNum]
-    if (!setData) continue
-    const remaining = setData.needed - setData.found - setData.missing
-    const done = remaining <= 0
-    items.push({ partKey, entry, setData, remaining, done })
-  }
+  // Freeze ordering at entry time (per setNum) so marking a piece doesn't
+  // shuffle the color group or the card under the user's finger.
+  const frozen = useMemo(() => {
+    const byColor = {}
+    for (const [partKey, entry] of Object.entries(state.inventory)) {
+      const sd = entry.sets[setNum]
+      if (!sd) continue
+      if (!byColor[entry.colorId]) {
+        byColor[entry.colorId] = {
+          colorId: entry.colorId,
+          colorName: entry.colorName,
+          undoneCount: 0,
+          parts: [],
+        }
+      }
+      const done = sd.needed - sd.found - sd.missing <= 0
+      if (!done) byColor[entry.colorId].undoneCount++
+      byColor[entry.colorId].parts.push({ partKey, done })
+    }
+    const orderedColorIds = Object.values(byColor)
+      .sort(
+        (a, b) =>
+          b.undoneCount - a.undoneCount || a.colorName.localeCompare(b.colorName)
+      )
+      .map((c) => c.colorId)
+    const partOrderByColor = {}
+    for (const c of Object.values(byColor)) {
+      partOrderByColor[c.colorId] = c.parts
+        .sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1))
+        .map((p) => p.partKey)
+    }
+    return { orderedColorIds, partOrderByColor }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setNum])
 
-  // Group by color
+  // Current-state color map: live entries keyed by partKey for fast lookup.
   const colorMap = {}
-  for (const p of items) {
-    const cid = p.entry.colorId
-    if (!colorMap[cid]) {
-      colorMap[cid] = {
-        colorId: cid,
-        colorName: p.entry.colorName,
-        colorHex: p.entry.colorHex,
-        items: [],
+  let totalNeeded = 0
+  let totalResolved = 0
+  let totalRemaining = 0
+  for (const [partKey, entry] of Object.entries(state.inventory)) {
+    const sd = entry.sets[setNum]
+    if (!sd) continue
+    totalNeeded += sd.needed
+    totalResolved += sd.found + sd.missing
+    const remaining = sd.needed - sd.found - sd.missing
+    totalRemaining += Math.max(0, remaining)
+    const done = remaining <= 0
+    if (!colorMap[entry.colorId]) {
+      colorMap[entry.colorId] = {
+        colorId: entry.colorId,
+        colorName: entry.colorName,
+        colorHex: entry.colorHex,
+        items: {},
       }
     }
-    colorMap[cid].items.push(p)
+    colorMap[entry.colorId].items[partKey] = { partKey, entry, setData: sd, done }
   }
-
-  // Sort colors by remaining count (most remaining first), then name
-  const colors = Object.values(colorMap).sort((a, b) => {
-    const ar = a.items.filter((p) => !p.done).length
-    const br = b.items.filter((p) => !p.done).length
-    if (br !== ar) return br - ar
-    return a.colorName.localeCompare(b.colorName)
-  })
-
-  // Within each color: undone first, done after
-  for (const c of colors) {
-    c.items.sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1))
-  }
-
-  const totalNeeded = items.reduce((s, p) => s + p.setData.needed, 0)
-  const totalResolved = items.reduce((s, p) => s + p.setData.found + p.setData.missing, 0)
-  const percent = totalNeeded === 0 ? 0 : Math.round((totalResolved / totalNeeded) * 100)
-  const totalRemaining = items.reduce((s, p) => s + Math.max(0, p.remaining), 0)
+  const percent =
+    totalNeeded === 0 ? 0 : Math.round((totalResolved / totalNeeded) * 100)
 
   return (
     <div className="set-screen">
@@ -85,12 +103,18 @@ export default function SetScreen() {
         Hide done
       </label>
 
-      {colors.map((c) => {
-        const visible = hideDone ? c.items.filter((p) => !p.done) : c.items
+      {frozen.orderedColorIds.map((cid) => {
+        const c = colorMap[cid]
+        if (!c) return null
+        const partKeys = frozen.partOrderByColor[cid] || []
+        const itemsInOrder = partKeys.map((k) => c.items[k]).filter(Boolean)
+        const visible = hideDone
+          ? itemsInOrder.filter((p) => !p.done)
+          : itemsInOrder
         if (visible.length === 0) return null
-        const undoneCount = c.items.filter((p) => !p.done).length
+        const undoneCount = itemsInOrder.filter((p) => !p.done).length
         return (
-          <div key={c.colorId} className="set-color-group">
+          <div key={cid} className="set-color-group">
             <div className="set-color-header">
               <span
                 className="set-color-dot"
