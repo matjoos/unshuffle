@@ -10,7 +10,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 120px;
+  width: 120px;
+  flex-shrink: 0;
 }
 
 .progress-track {
