@@ -11,11 +11,16 @@ export default function ColorsScreen() {
     <div className="colors-screen">
       <div className="colors-progress">
         {Object.entries(state.sets).map(([setNum, info]) => (
-          <ProgressBar
+          <button
             key={setNum}
-            label={info.name}
-            percent={getSetProgress(state.inventory, setNum)}
-          />
+            className="colors-progress-btn"
+            onClick={() => dispatch({ type: 'SET_ACTIVE_SET', setNum })}
+          >
+            <ProgressBar
+              label={info.name}
+              percent={getSetProgress(state.inventory, setNum)}
+            />
+          </button>
         ))}
       </div>
 

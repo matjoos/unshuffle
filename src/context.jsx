@@ -10,6 +10,7 @@ const initialState = {
   inventory: {},
   screen: 'setup',
   activeColorId: null,
+  activeSetNum: null,
 }
 
 function reducer(state, action) {
@@ -126,6 +127,9 @@ function reducer(state, action) {
 
     case 'SET_ACTIVE_COLOR':
       return { ...state, activeColorId: action.colorId, screen: 'picking' }
+
+    case 'SET_ACTIVE_SET':
+      return { ...state, activeSetNum: action.setNum, screen: 'set' }
 
     case 'RESET':
       return { ...initialState }
