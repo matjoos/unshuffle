@@ -253,9 +253,11 @@ export default function SummaryScreen() {
                                 setNum: sm.setNum,
                               })
                             }
-                            title={`Credit one to ${sm.setName}`}
+                            title={`Credit one to ${sm.setName} (${sm.setNum})`}
                           >
-                            {sm.setName} <span className="summary-chip-count">({sm.missing})</span>
+                            <span className="summary-chip-name">{sm.setName}</span>
+                            <span className="summary-chip-num">{sm.setNum}</span>
+                            <span className="summary-chip-count">({sm.missing})</span>
                           </button>
                         ))}
                       </div>

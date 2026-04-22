@@ -206,6 +206,9 @@
 }
 
 .summary-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
   background: #fff;
   border: 1px solid var(--accent);
   color: var(--accent);
@@ -213,7 +216,8 @@
   padding: 4px 10px;
   border-radius: 999px;
   cursor: pointer;
-  white-space: nowrap;
+  max-width: 260px;
+  min-width: 0;
 }
 
 .summary-chip:hover {
@@ -221,9 +225,25 @@
   color: #fff;
 }
 
+.summary-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.summary-chip-num {
+  font-size: 11px;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
 .summary-chip-count {
   opacity: 0.75;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .summary-export {
