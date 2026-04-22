@@ -122,6 +122,29 @@ function reducer(state, action) {
       }
     }
 
+    case 'CONVERT_MISSING_TO_FOUND': {
+      const entry = state.inventory[action.partKey]
+      const setData = entry.sets[action.setNum]
+      if (setData.missing <= 0) return state
+      return {
+        ...state,
+        inventory: {
+          ...state.inventory,
+          [action.partKey]: {
+            ...entry,
+            sets: {
+              ...entry.sets,
+              [action.setNum]: {
+                ...setData,
+                missing: setData.missing - 1,
+                found: setData.found + 1,
+              },
+            },
+          },
+        },
+      }
+    }
+
     case 'SET_SCREEN':
       return { ...state, screen: action.screen }
 
