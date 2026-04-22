@@ -1,6 +1,6 @@
 import './ProgressBar.css'
 
-export default function ProgressBar({ label, percent }) {
+export default function ProgressBar({ label, percent, complete = false }) {
   return (
     <div className="progress-bar">
       {label && <span className="progress-label">{label}</span>}
@@ -11,6 +11,13 @@ export default function ProgressBar({ label, percent }) {
         />
       </div>
       <span className="progress-pct">{percent}%</span>
+      <span
+        className="progress-star"
+        title={complete ? 'All parts found' : ''}
+        aria-hidden={!complete}
+      >
+        {complete ? '\u2605' : ''}
+      </span>
     </div>
   )
 }

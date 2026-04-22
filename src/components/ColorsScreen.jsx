@@ -1,4 +1,4 @@
-import { useAppState, getSetProgress, getColorStats } from '../context.jsx'
+import { useAppState, getSetProgress, getColorStats, isSetComplete } from '../context.jsx'
 import ProgressBar from './ProgressBar.jsx'
 import ColorSwatch from './ColorSwatch.jsx'
 import './ColorsScreen.css'
@@ -19,6 +19,7 @@ export default function ColorsScreen() {
             <ProgressBar
               label={info.name}
               percent={getSetProgress(state.inventory, setNum)}
+              complete={isSetComplete(state.inventory, setNum)}
             />
           </button>
         ))}

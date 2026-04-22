@@ -31,6 +31,17 @@
 
 .progress-pct {
   color: var(--text-muted);
-  min-width: 32px;
+  width: 36px;
   text-align: right;
+  flex-shrink: 0;
+}
+
+.progress-star {
+  color: var(--success);
+  font-size: 14px;
+  line-height: 1;
+  margin-left: 2px;
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
 }

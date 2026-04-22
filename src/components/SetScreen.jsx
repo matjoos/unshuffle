@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useAppState } from '../context.jsx'
+import { useAppState, isSetComplete } from '../context.jsx'
 import PartCard from './PartCard.jsx'
 import ProgressBar from './ProgressBar.jsx'
 import './SetScreen.css'
@@ -92,7 +92,10 @@ export default function SetScreen() {
         </div>
       </div>
 
-      <ProgressBar percent={percent} />
+      <ProgressBar
+        percent={percent}
+        complete={isSetComplete(state.inventory, setNum)}
+      />
 
       <label className="set-screen-toggle">
         <input

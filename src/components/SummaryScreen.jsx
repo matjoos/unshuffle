@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useAppState, getSetProgress } from '../context.jsx'
+import { useAppState, getSetProgress, isSetComplete } from '../context.jsx'
 import { fetchBrickLinkColorMap } from '../api.js'
 import { buildBrickLinkXML, buildCSV, downloadFile } from '../export.js'
 import ProgressBar from './ProgressBar.jsx'
@@ -150,6 +150,7 @@ export default function SummaryScreen() {
             key={setNum}
             label={`${info.name} (${setNum})`}
             percent={getSetProgress(inventory, setNum)}
+            complete={isSetComplete(inventory, setNum)}
           />
         ))}
       </div>

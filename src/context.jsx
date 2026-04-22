@@ -229,6 +229,17 @@ export async function readStateFromFile(file) {
   return parsed
 }
 
+export function isSetComplete(inventory, setNum) {
+  let hasParts = false
+  for (const entry of Object.values(inventory)) {
+    const sd = entry.sets[setNum]
+    if (!sd) continue
+    hasParts = true
+    if (sd.missing > 0 || sd.found < sd.needed) return false
+  }
+  return hasParts
+}
+
 export function getSetProgress(inventory, setNum) {
   let totalNeeded = 0
   let totalResolved = 0
