@@ -31,6 +31,22 @@ function reducer(state, action) {
     case 'LOAD_INVENTORY':
       return { ...state, inventory: action.inventory, screen: 'colors' }
 
+    case 'PATCH_BL_PART_IDS': {
+      // Strictly additive: sets `blPartNum` on matching inventory entries.
+      // Never touches found/missing/needed/colors/names. Keys not in inventory
+      // are ignored (no new entries created).
+      const merged = { ...state.inventory }
+      let changed = 0
+      for (const [partKey, blPartNum] of Object.entries(action.patch)) {
+        if (merged[partKey] && merged[partKey].blPartNum !== blPartNum) {
+          merged[partKey] = { ...merged[partKey], blPartNum }
+          changed++
+        }
+      }
+      if (changed === 0) return state
+      return { ...state, inventory: merged }
+    }
+
     case 'MERGE_INVENTORY': {
       const merged = { ...state.inventory }
       for (const [key, newEntry] of Object.entries(action.additions)) {

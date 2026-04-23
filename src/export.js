@@ -1,5 +1,6 @@
 export function buildBrickLinkXML(inventory, colorMap) {
   const items = []
+  const unmapped = []
 
   for (const entry of Object.values(inventory)) {
     let totalMissing = 0
@@ -8,20 +9,32 @@ export function buildBrickLinkXML(inventory, colorMap) {
     }
     if (totalMissing === 0) continue
 
+    const itemId = entry.blPartNum || entry.partNum
+    if (!entry.blPartNum) {
+      unmapped.push({
+        partNum: entry.partNum,
+        name: entry.name,
+        colorName: entry.colorName,
+        qty: totalMissing,
+      })
+    }
+
     const blColorId = colorMap?.[entry.colorId]
     items.push(
       `  <ITEM>
     <ITEMTYPE>P</ITEMTYPE>
-    <ITEMID>${escapeXml(entry.partNum)}</ITEMID>${blColorId != null ? `\n    <COLOR>${blColorId}</COLOR>` : ''}
+    <ITEMID>${escapeXml(itemId)}</ITEMID>${blColorId != null ? `\n    <COLOR>${blColorId}</COLOR>` : ''}
     <MINQTY>${totalMissing}</MINQTY>
   </ITEM>`
     )
   }
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <INVENTORY>
 ${items.join('\n')}
 </INVENTORY>`
+
+  return { xml, unmapped }
 }
 
 export function buildCSV(inventory) {

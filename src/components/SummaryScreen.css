@@ -246,6 +246,28 @@
   flex-shrink: 0;
 }
 
+.summary-refresh-note {
+  margin-top: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.summary-refresh-note p {
+  margin: 0 0 8px;
+}
+
+.summary-refresh-note strong {
+  color: var(--danger);
+}
+
+.summary-refresh-status {
+  color: var(--text);
+}
+
 .summary-export {
   display: flex;
   gap: 8px;

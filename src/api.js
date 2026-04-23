@@ -29,8 +29,10 @@ export async function fetchSetParts(apiKey, setNum) {
     const data = await apiFetch(apiKey, url)
     for (const item of data.results) {
       if (item.is_spare) continue
+      const blExt = item.part.external_ids?.BrickLink
       parts.push({
         partNum: item.part.part_num,
+        blPartNum: Array.isArray(blExt) && blExt.length > 0 ? blExt[0] : null,
         name: item.part.name,
         imgUrl: item.part.part_img_url,
         colorId: item.color.id,
@@ -79,6 +81,7 @@ export function mergeInventories(fetchedSets) {
       if (!inventory[key]) {
         inventory[key] = {
           partNum: part.partNum,
+          blPartNum: part.blPartNum ?? null,
           name: part.name,
           colorId: part.colorId,
           colorName: part.colorName,
