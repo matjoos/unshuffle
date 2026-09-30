@@ -3,6 +3,7 @@ import { useAppState } from '../context.jsx'
 import { getSetProgress, isSetComplete, exportStateToFile } from '../state.js'
 import { fetchBrickLinkColorMap, fetchSetParts } from '../api.js'
 import { buildBrickLinkXML, buildCSV, downloadFile } from '../export.js'
+import SetLink from './SetLink.jsx'
 import ProgressBar from './ProgressBar.jsx'
 import './SummaryScreen.css'
 
@@ -193,15 +194,30 @@ export default function SummaryScreen() {
 
       <h2>Progress</h2>
       <div className="summary-progress">
-        {Object.entries(sets).map(([setNum, info]) => (
+        {Object.entries(sets)
+          .filter(([setNum]) => !state.hideDone || !isSetComplete(inventory, setNum))
+          .map(([setNum, info]) => (
           <ProgressBar
             key={setNum}
-            label={`${info.name} (${setNum})`}
+            labelNode={
+              <>
+                <SetLink setNum={setNum}>{info.name}</SetLink> ({setNum})
+              </>
+            }
             percent={getSetProgress(inventory, setNum)}
             complete={isSetComplete(inventory, setNum)}
           />
         ))}
       </div>
+
+      <label className="set-screen-toggle">
+        <input
+          type="checkbox"
+          checked={state.hideDone}
+          onChange={(e) => dispatch({ type: 'SET_HIDE_DONE', value: e.target.checked })}
+        />
+        Hide done sets
+      </label>
 
       <div className="summary-missing-header">
         <h2>Missing Parts ({totalMissing})</h2>
@@ -239,7 +255,7 @@ export default function SummaryScreen() {
                     <img src={sets[setNum].imgUrl} alt="" className="summary-set-img" />
                   )}
                   <div className="summary-set-info">
-                    <strong>{sets[setNum]?.name || setNum}</strong>
+                    <strong><SetLink setNum={setNum} /></strong>
                     <span className="summary-set-num">{setNum}</span>
                   </div>
                   <span className="summary-set-count">
@@ -259,6 +275,15 @@ export default function SummaryScreen() {
                         </span>
                       </div>
                       <span className="summary-item-qty">&times;{missing}</span>
+                      <button
+                        className="btn-found summary-found-btn"
+                        onClick={() =>
+                          dispatch({ type: 'CONVERT_MISSING_TO_FOUND', partKey, setNum })
+                        }
+                        title="Found one: move it from missing to found"
+                      >
+                        Found
+                      </button>
                     </li>
                   ))}
                 </ul>

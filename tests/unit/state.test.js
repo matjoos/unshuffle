@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   reducer, initialState, STATE_VERSION, loadPersistedState, STORAGE_KEY,
-  readStateFromFile, isSetComplete, getSetProgress, getColorStats,
+  readStateFromFile, migrateState, isSetComplete, getSetProgress, getColorStats,
 } from '../../src/state.js'
 
 const inv = () => ({
@@ -146,5 +146,34 @@ describe('persistence & import compat', () => {
   it('rejects files of an unsupported version', async () => {
     const file = new File([JSON.stringify({ version: 42 })], 'x.json')
     await expect(readStateFromFile(file)).rejects.toThrow(/Unsupported file version/)
+  })
+})
+
+describe('migrateState', () => {
+  it('treats versionless state as v1 and fills defaults for new fields', () => {
+    const { version: _v, hideDone: _h, ...old } = base()
+    const s = migrateState(old)
+    expect(s.version).toBe(STATE_VERSION)
+    expect(s.hideDone).toBe(false)
+    expect(s.inventory['4:3001']).toEqual(base().inventory['4:3001'])
+  })
+
+  it('keeps stored progress and rejects unknown versions', () => {
+    const s = migrateState({ ...base(), version: 1, hideDone: true })
+    expect(s.hideDone).toBe(true)
+    expect(migrateState({ version: STATE_VERSION + 1 })).toBeNull()
+    expect(migrateState(null)).toBeNull()
+  })
+
+  it('loads an old persisted state via loadPersistedState', () => {
+    const { hideDone: _h, ...old } = base()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...old, version: 1 }))
+    expect(loadPersistedState().hideDone).toBe(false)
+  })
+})
+
+describe('SET_HIDE_DONE', () => {
+  it('toggles the shared hide-done setting', () => {
+    expect(reducer(initialState, { type: 'SET_HIDE_DONE', value: true }).hideDone).toBe(true)
   })
 })

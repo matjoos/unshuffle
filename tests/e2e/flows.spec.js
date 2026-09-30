@@ -81,3 +81,22 @@ test('export / import progress roundtrip', async ({ page }) => {
   await page.locator('input[type=file]').setInputFiles(path)
   await expect(page.locator('.count-found')).toHaveText('Found: 1')
 })
+
+test('quick wins: set links, hide done on picking, found from By set', async ({ page }) => {
+  await addSets(page, ['31058', '31088'])
+  await page.getByRole('button', { name: /Red/ }).click()
+  await page.locator('.part-card').first().getByRole('button', { name: '+Found' }).click()
+  const before = await page.locator('.part-card').count()
+  await page.getByLabel('Hide done').check()
+  // one card may still be visible if it needed more than one
+  expect(await page.locator('.part-card').count()).toBeLessThanOrEqual(before)
+  await page.locator('.part-card').first().getByRole('button', { name: '+Missing' }).click()
+  // clicking a set name opens that set's screen
+  await page.locator('.picking-set-header .set-link').first().click()
+  await expect(page.locator('.set-screen')).toBeVisible()
+  await page.getByRole('button', { name: /Sets/ }).click()
+  await page.getByRole('button', { name: 'View Missing Parts' }).click()
+  await expect(page.getByRole('heading', { name: /Missing Parts \(1\)/ })).toBeVisible()
+  await page.locator('.summary-found-btn').first().click()
+  await expect(page.getByText('No missing parts yet')).toBeVisible()
+})

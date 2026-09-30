@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useAppState } from '../context.jsx'
 import { isSetComplete } from '../state.js'
 import PartCard from './PartCard.jsx'
@@ -7,7 +7,7 @@ import './SetScreen.css'
 
 export default function SetScreen() {
   const { state, dispatch } = useAppState()
-  const [hideDone, setHideDone] = useState(false)
+  const hideDone = state.hideDone
 
   const setNum = state.activeSetNum
   const setInfo = state.sets[setNum]
@@ -88,7 +88,7 @@ export default function SetScreen() {
         <div className="set-screen-info">
           <strong>{setInfo?.name || setNum}</strong>
           <span className="set-screen-meta">
-            {setNum} &middot; {totalRemaining} parts left
+            {setNum} &middot; {totalRemaining} {totalRemaining === 1 ? 'part' : 'parts'} left
           </span>
         </div>
       </div>
@@ -102,7 +102,7 @@ export default function SetScreen() {
         <input
           type="checkbox"
           checked={hideDone}
-          onChange={(e) => setHideDone(e.target.checked)}
+          onChange={(e) => dispatch({ type: 'SET_HIDE_DONE', value: e.target.checked })}
         />
         Hide done
       </label>

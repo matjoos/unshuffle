@@ -9,6 +9,25 @@ export const initialState = {
   screen: 'setup',
   activeColorId: null,
   activeSetNum: null,
+  hideDone: false,
+}
+
+// Each entry upgrades a state of version N to N+1. Version 1 is the shape
+// shipped so far; states without a version are treated as version 1.
+const MIGRATIONS = {}
+
+// Upgrade any saved/exported state to the current shape, filling defaults for
+// fields added later. Returns null if the version is unknown/newer.
+export function migrateState(raw) {
+  if (!raw || typeof raw !== 'object') return null
+  let version = raw.version ?? 1
+  if (!Number.isInteger(version) || version < 1 || version > STATE_VERSION) return null
+  let s = { ...raw }
+  while (version < STATE_VERSION) {
+    s = MIGRATIONS[version](s)
+    version++
+  }
+  return { ...initialState, ...s, version: STATE_VERSION }
 }
 
 export function reducer(state, action) {
@@ -160,6 +179,9 @@ export function reducer(state, action) {
       }
     }
 
+    case 'SET_HIDE_DONE':
+      return { ...state, hideDone: !!action.value }
+
     case 'SET_SCREEN':
       return { ...state, screen: action.screen }
 
@@ -184,9 +206,7 @@ export function loadPersistedState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
-    const parsed = JSON.parse(raw)
-    if (parsed.version !== STATE_VERSION) return null
-    return parsed
+    return migrateState(JSON.parse(raw))
   } catch {
     return null
   }
@@ -207,10 +227,9 @@ export function exportStateToFile(state) {
 
 export async function readStateFromFile(file) {
   const text = await file.text()
-  const parsed = JSON.parse(text)
-  if (parsed.version !== STATE_VERSION) {
-    throw new Error(`Unsupported file version (${parsed.version})`)
-  }
+  const raw = JSON.parse(text)
+  const parsed = migrateState(raw)
+  if (!parsed) throw new Error(`Unsupported file version (${raw?.version})`)
   return parsed
 }
 

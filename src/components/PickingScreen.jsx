@@ -1,10 +1,11 @@
 import { useAppState } from '../context.jsx'
+import SetLink from './SetLink.jsx'
 import PartCard from './PartCard.jsx'
 import './PickingScreen.css'
 
 export default function PickingScreen() {
   const { state, dispatch } = useAppState()
-  const { inventory, activeColorId, sets } = state
+  const { inventory, activeColorId, sets, hideDone } = state
 
   // Filter inventory to current color
   const colorParts = Object.entries(inventory).filter(
@@ -53,6 +54,15 @@ export default function PickingScreen() {
         </span>
       </div>
 
+      <label className="set-screen-toggle">
+        <input
+          type="checkbox"
+          checked={hideDone}
+          onChange={(e) => dispatch({ type: 'SET_HIDE_DONE', value: e.target.checked })}
+        />
+        Hide done
+      </label>
+
       {Object.entries(bySet).map(([setNum, cards]) => {
         const setInfo = sets[setNum]
         const remaining = cards.filter((c) => !c.done)
@@ -66,11 +76,11 @@ export default function PickingScreen() {
                 <img src={setInfo.imgUrl} alt="" className="picking-set-img" />
               )}
               <div className="picking-set-info">
-                <strong>{setInfo?.name || setNum}</strong>
+                <strong><SetLink setNum={setNum} /></strong>
                 <span className="picking-set-num">{setNum}</span>
               </div>
               <span className="picking-set-status">
-                {allDone ? '\u2713 Done' : `${remaining.length} parts left`}
+                {allDone ? '\u2713 Done' : `${remaining.length} ${remaining.length === 1 ? 'part' : 'parts'} left`}
               </span>
             </div>
 
@@ -83,7 +93,7 @@ export default function PickingScreen() {
                   setNum={sn}
                 />
               ))}
-              {done.map(({ partKey, entry, setNum: sn }) => (
+              {!hideDone && done.map(({ partKey, entry, setNum: sn }) => (
                 <PartCard
                   key={`${partKey}:${sn}`}
                   partKey={partKey}
