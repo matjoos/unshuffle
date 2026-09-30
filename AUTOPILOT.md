@@ -1,7 +1,7 @@
 # AUTOPILOT — unshuffle
 
 Status: ACTIVE
-Runs: 3 / 12 (cap 12)   Branch: `autopilot`   Setup: `tools/cloud-setup.sh`
+Runs: 4 / 12 (cap 12)   Branch: `autopilot`   Setup: `tools/cloud-setup.sh`
 
 ## Definition of done
 1. No open items in `TODO.md` (each implemented or closed with a reason).
@@ -25,6 +25,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 
 - Run 2 finished: shipped M3+M4. hideDone is now a persisted top-level state field (no version bump; migrateState fills defaults). Summary 'Hide done sets' hides completed sets in Progress (missing rows are by definition unfinished). Credit chips in By color are not set links (they are actions). Verified: lint, 31 unit, 12 e2e pass, screenshot viewed. Next: M5 unified Parts view. (started 2026-09-30T09:11:33Z.
 - Run 3 started 2026-09-30T12:16Z. Shipped M5: PartsScreen replaces Picking/SetScreen (set+colour scope selects, group by set|colour, filter All|Unresolved|Missing, hide done, 'Found it' on missing rows); Summary keeps progress/export and links to Parts (missing filter). State gained `view` (persisted; old 'picking'/'set' screens migrate to 'parts', tested). Verified: lint, build, 36 unit, 14 e2e, phone screenshot viewed (group-by pill tint looks slightly odd; polish in M8). Next: M6. Run 3 finished.
+- Run 4 started 2026-09-30T15:11Z.
 ## Known issues / decisions
 - Progress-bar labels truncate on phone (fix in M8 polish).
 - Screen name is persisted in state, so reload resumes on the last screen (kept).
