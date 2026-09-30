@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   reducer, initialState, STATE_VERSION, loadPersistedState, STORAGE_KEY,
   readStateFromFile, migrateState, isSetComplete, getSetProgress, getColorStats,
+  selectPartRows,
 } from '../../src/state.js'
 
 const inv = () => ({
@@ -83,9 +84,9 @@ describe('inventory actions', () => {
     s = reducer(s, { type: 'REMOVE_SET', setNum: 'X-1' })
     expect(s.sets).toEqual({})
     s = reducer(base(), { type: 'SET_ACTIVE_COLOR', colorId: 4 })
-    expect(s).toMatchObject({ screen: 'picking', activeColorId: 4 })
+    expect(s).toMatchObject({ screen: 'parts', activeColorId: 4, view: { colorId: 4, setNum: null, groupBy: 'set' } })
     s = reducer(s, { type: 'SET_ACTIVE_SET', setNum: 'A' })
-    expect(s).toMatchObject({ screen: 'set', activeSetNum: 'A' })
+    expect(s).toMatchObject({ screen: 'parts', activeSetNum: 'A', view: { setNum: 'A', colorId: null, groupBy: 'color' } })
     expect(reducer(s, { type: 'RESET' })).toEqual(initialState)
   })
 })
@@ -175,5 +176,38 @@ describe('migrateState', () => {
 describe('SET_HIDE_DONE', () => {
   it('toggles the shared hide-done setting', () => {
     expect(reducer(initialState, { type: 'SET_HIDE_DONE', value: true }).hideDone).toBe(true)
+  })
+})
+
+describe('parts view', () => {
+  const v = (o) => ({ ...initialState.view, ...o })
+  it('migrates old picking/set screens to the parts view', () => {
+    const { view: _v, ...old } = base()
+    let s = migrateState({ ...old, screen: 'picking', activeColorId: 4 })
+    expect(s).toMatchObject({ screen: 'parts', view: { colorId: 4, setNum: null, groupBy: 'set' } })
+    s = migrateState({ ...old, screen: 'set', activeSetNum: 'B' })
+    expect(s).toMatchObject({ screen: 'parts', view: { setNum: 'B', groupBy: 'color' } })
+    expect(migrateState({ ...old, screen: 'colors' }).view).toEqual(initialState.view)
+  })
+
+  it('selectPartRows applies scope and filters', () => {
+    const s = run(base(),
+      { type: 'MARK_FOUND', partKey: '1:3023', setNum: 'A' },
+      { type: 'MARK_MISSING', partKey: '4:3001', setNum: 'B' })
+    const keys = (view, hide) => selectPartRows(s.inventory, v(view), hide).map((r) => `${r.partKey}@${r.setNum}`)
+    expect(keys({})).toHaveLength(3)
+    expect(keys({ colorId: 4 })).toEqual(['4:3001@A', '4:3001@B'])
+    expect(keys({ setNum: 'A' })).toEqual(['4:3001@A', '1:3023@A'])
+    expect(keys({ filter: 'unresolved' })).toEqual(['4:3001@A'])
+    expect(keys({ filter: 'missing' })).toEqual(['4:3001@B'])
+    expect(keys({}, true)).toEqual(['4:3001@A'])
+    expect(selectPartRows(s.inventory, v({ setNum: 'B' })).every((r) => r.done)).toBe(true)
+  })
+
+  it('SET_VIEW patches and OPEN_PARTS resets', () => {
+    let s = reducer(base(), { type: 'SET_VIEW', patch: { filter: 'missing' } })
+    expect(s.view.filter).toBe('missing')
+    s = reducer(s, { type: 'OPEN_PARTS', view: { filter: 'missing' } })
+    expect(s).toMatchObject({ screen: 'parts', view: { filter: 'missing', setNum: null } })
   })
 })

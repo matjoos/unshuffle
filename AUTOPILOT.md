@@ -14,7 +14,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - [x] M2 Playwright e2e against fixtures (route-intercepted fetch), screenshots phone+desktop, `npm test` runs both
 - [x] M3 Versioned state migration framework (`migrateState`, fills defaults) + tests (selectors stay in src/state.js; no separate src/logic needed)
 - [x] M4 TODO quick wins: clickable set names (SetLink), Hide done shared setting (persisted, on Picking/Set/Summary progress), Found button in Summary By set, pluralisation
-- [ ] M5 Unified Parts view (group by Set|Color, filter Unresolved|Missing|All, scope set/color, hide done); ColorsScreen stays landing; persist settings
+- [x] M5 Unified Parts view (group by Set|Color, filter Unresolved|Missing|All, scope set/color, hide done); ColorsScreen stays landing; persist settings
 - [ ] M6 Part search; undo stack for marks; bulk actions (found all needed / mark whole set built / partly built sets)
 - [ ] M7 First-run API-key guidance; manual-add missing part; shared-parts across sets view; spare parts/minifigs handling; alternate colours
 - [ ] M8 Performance for huge inventories; mobile/tablet polish; nice-to-haves (chip images, set hero, deep-link URLs); decide on `worker/`
@@ -24,7 +24,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - Run 1 started 2026-09-30 (UTC). Shipped M1: reducer/selectors moved to src/state.js; 27 unit tests (api w/ mocked fetch + fixtures, reducer, selectors, persistence/import, BL XML/CSV); CI workflow. Verified: lint, build, vitest pass. Also shipped M2: Playwright (phone Pixel 7 + desktop) 5 flows x2 pass, screenshots viewed (phone picking, desktop summary look OK; fixture images are 1px so appear as blank). `npm test` = vitest + playwright; playwright.config.js auto-falls back to preinstalled /opt/pw-browsers chromium. Next: M3. Run 1 finished.
 
 - Run 2 finished: shipped M3+M4. hideDone is now a persisted top-level state field (no version bump; migrateState fills defaults). Summary 'Hide done sets' hides completed sets in Progress (missing rows are by definition unfinished). Credit chips in By color are not set links (they are actions). Verified: lint, 31 unit, 12 e2e pass, screenshot viewed. Next: M5 unified Parts view. (started 2026-09-30T09:11:33Z.
-- Run 3 started 2026-09-30T12:16Z.
+- Run 3 started 2026-09-30T12:16Z. Shipped M5: PartsScreen replaces Picking/SetScreen (set+colour scope selects, group by set|colour, filter All|Unresolved|Missing, hide done, 'Found it' on missing rows); Summary keeps progress/export and links to Parts (missing filter). State gained `view` (persisted; old 'picking'/'set' screens migrate to 'parts', tested). Verified: lint, build, 36 unit, 14 e2e, phone screenshot viewed (group-by pill tint looks slightly odd; polish in M8). Next: M6. Run 3 finished.
 ## Known issues / decisions
 - Progress-bar labels truncate on phone (fix in M8 polish).
 - Screen name is persisted in state, so reload resumes on the last screen (kept).

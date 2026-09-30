@@ -10,6 +10,8 @@ export const initialState = {
   activeColorId: null,
   activeSetNum: null,
   hideDone: false,
+  // Parts view: optional set/colour scope, grouping axis and row filter.
+  view: { setNum: null, colorId: null, groupBy: 'set', filter: 'all' },
 }
 
 // Each entry upgrades a state of version N to N+1. Version 1 is the shape
@@ -27,7 +29,19 @@ export function migrateState(raw) {
     s = MIGRATIONS[version](s)
     version++
   }
-  return { ...initialState, ...s, version: STATE_VERSION }
+  s = { ...initialState, ...s, version: STATE_VERSION }
+  s.view = { ...initialState.view, ...(raw.view || {}) }
+  // Older builds had separate 'picking' (one colour) and 'set' screens.
+  if (s.screen === 'picking' && !raw.view) {
+    s.screen = 'parts'
+    s.view = { ...s.view, colorId: s.activeColorId, groupBy: 'set' }
+  } else if (s.screen === 'set' && !raw.view) {
+    s.screen = 'parts'
+    s.view = { ...s.view, setNum: s.activeSetNum, groupBy: 'color' }
+  } else if (s.screen === 'picking' || s.screen === 'set') {
+    s.screen = 'parts'
+  }
+  return s
 }
 
 export function reducer(state, action) {
@@ -186,10 +200,31 @@ export function reducer(state, action) {
       return { ...state, screen: action.screen }
 
     case 'SET_ACTIVE_COLOR':
-      return { ...state, activeColorId: action.colorId, screen: 'picking' }
+      return {
+        ...state,
+        activeColorId: action.colorId,
+        screen: 'parts',
+        view: { ...state.view, setNum: null, colorId: action.colorId, groupBy: 'set' },
+      }
 
     case 'SET_ACTIVE_SET':
-      return { ...state, activeSetNum: action.setNum, screen: 'set' }
+      return {
+        ...state,
+        activeSetNum: action.setNum,
+        screen: 'parts',
+        view: { ...state.view, setNum: action.setNum, colorId: null, groupBy: 'color' },
+      }
+
+    // Open the Parts view with an arbitrary scope/filter (e.g. all missing parts).
+    case 'OPEN_PARTS':
+      return {
+        ...state,
+        screen: 'parts',
+        view: { ...initialState.view, ...action.view },
+      }
+
+    case 'SET_VIEW':
+      return { ...state, view: { ...state.view, ...action.patch } }
 
     case 'RESET':
       return { ...initialState }
@@ -279,4 +314,23 @@ export function getColorStats(inventory) {
     const bRemaining = b.totalParts - b.resolvedParts
     return bRemaining - aRemaining
   })
+}
+
+// Rows of the Parts view: one per (part, set) pair matching scope + filter.
+// Filters: 'all' | 'unresolved' (still to check) | 'missing' (marked missing).
+export function selectPartRows(inventory, view, hideDone = false) {
+  const { setNum, colorId, filter } = view
+  const rows = []
+  for (const [partKey, entry] of Object.entries(inventory)) {
+    if (colorId != null && entry.colorId !== colorId) continue
+    for (const [sn, sd] of Object.entries(entry.sets)) {
+      if (setNum && sn !== setNum) continue
+      const remaining = sd.needed - sd.found - sd.missing
+      if (filter === 'missing' && sd.missing <= 0) continue
+      if (filter === 'unresolved' && remaining <= 0) continue
+      if (filter === 'all' && hideDone && remaining <= 0) continue
+      rows.push({ partKey, setNum: sn, entry, done: remaining <= 0 })
+    }
+  }
+  return rows
 }
