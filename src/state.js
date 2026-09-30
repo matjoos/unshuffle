@@ -11,8 +11,16 @@ export const initialState = {
   activeSetNum: null,
   hideDone: false,
   // Parts view: optional set/colour scope, grouping axis and row filter.
-  view: { setNum: null, colorId: null, groupBy: 'set', filter: 'all' },
+  view: { setNum: null, colorId: null, groupBy: 'set', filter: 'all', query: '' },
+  // Recent inventory snapshots for Undo. Session-only: never persisted/exported.
+  history: [],
 }
+
+const HISTORY_LIMIT = 50
+const INVENTORY_ACTIONS = new Set([
+  'MARK_FOUND', 'MARK_MISSING', 'UNDO_FOUND', 'UNDO_MISSING',
+  'CONVERT_MISSING_TO_FOUND', 'RESOLVE_ROWS',
+])
 
 // Each entry upgrades a state of version N to N+1. Version 1 is the shape
 // shipped so far; states without a version are treated as version 1.
@@ -29,7 +37,7 @@ export function migrateState(raw) {
     s = MIGRATIONS[version](s)
     version++
   }
-  s = { ...initialState, ...s, version: STATE_VERSION }
+  s = { ...initialState, ...s, version: STATE_VERSION, history: [] }
   s.view = { ...initialState.view, ...(raw.view || {}) }
   // Older builds had separate 'picking' (one colour) and 'set' screens.
   if (s.screen === 'picking' && !raw.view) {
@@ -44,7 +52,22 @@ export function migrateState(raw) {
   return s
 }
 
+// Wraps the base reducer with a bounded undo history of inventory snapshots
+// (snapshots share structure, so this is cheap even for big inventories).
 export function reducer(state, action) {
+  if (action.type === 'UNDO_LAST') {
+    const history = state.history || []
+    if (history.length === 0) return state
+    return { ...state, inventory: history[history.length - 1], history: history.slice(0, -1) }
+  }
+  const next = baseReducer(state, action)
+  if (INVENTORY_ACTIONS.has(action.type) && next.inventory !== state.inventory) {
+    return { ...next, history: [...(state.history || []).slice(-(HISTORY_LIMIT - 1)), state.inventory] }
+  }
+  return next
+}
+
+function baseReducer(state, action) {
   switch (action.type) {
     case 'SET_API_KEY':
       return { ...state, apiKey: action.apiKey }
@@ -193,6 +216,25 @@ export function reducer(state, action) {
       }
     }
 
+    // Bulk: mark every still-unresolved unit of the given rows as found.
+    case 'RESOLVE_ROWS': {
+      const inventory = { ...state.inventory }
+      let changed = false
+      for (const { partKey, setNum } of action.rows) {
+        const entry = inventory[partKey]
+        const sd = entry?.sets[setNum]
+        if (!sd) continue
+        const remaining = sd.needed - sd.found - sd.missing
+        if (remaining <= 0) continue
+        inventory[partKey] = {
+          ...entry,
+          sets: { ...entry.sets, [setNum]: { ...sd, found: sd.found + remaining } },
+        }
+        changed = true
+      }
+      return changed ? { ...state, inventory } : state
+    }
+
     case 'SET_HIDE_DONE':
       return { ...state, hideDone: !!action.value }
 
@@ -230,7 +272,7 @@ export function reducer(state, action) {
       return { ...initialState }
 
     case 'LOAD_STATE':
-      return { ...initialState, ...action.state }
+      return { ...initialState, ...action.state, history: [] }
 
     default:
       return state
@@ -248,7 +290,7 @@ export function loadPersistedState() {
 }
 
 export function exportStateToFile(state) {
-  const { apiKey: _, ...safe } = state
+  const { apiKey: _, history: __, ...safe } = state
   const blob = new Blob([JSON.stringify(safe, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -320,9 +362,11 @@ export function getColorStats(inventory) {
 // Filters: 'all' | 'unresolved' (still to check) | 'missing' (marked missing).
 export function selectPartRows(inventory, view, hideDone = false) {
   const { setNum, colorId, filter } = view
+  const q = (view.query || '').trim().toLowerCase()
   const rows = []
   for (const [partKey, entry] of Object.entries(inventory)) {
     if (colorId != null && entry.colorId !== colorId) continue
+    if (q && !`${entry.name} ${entry.partNum} ${entry.blPartNum || ''}`.toLowerCase().includes(q)) continue
     for (const [sn, sd] of Object.entries(entry.sets)) {
       if (setNum && sn !== setNum) continue
       const remaining = sd.needed - sd.found - sd.missing

@@ -105,6 +105,14 @@ export default function PartsScreen() {
       )}
 
       <div className="parts-controls">
+        <input
+          type="search"
+          className="parts-search"
+          aria-label="Search parts"
+          placeholder="Search parts by name or number…"
+          value={view.query || ''}
+          onChange={(e) => setView({ query: e.target.value })}
+        />
         <div className="parts-scope">
           <label>
             Set
@@ -192,6 +200,20 @@ export default function PartsScreen() {
               <span className="picking-set-status">
                 {undone === 0 ? '✓ Done' : `${undone} ${undone === 1 ? 'part' : 'parts'} left`}
               </span>
+              {undone > 0 && (
+                <button
+                  className="btn-found parts-group-all"
+                  title="Mark every unresolved part in this group as found (Undo available)"
+                  onClick={() =>
+                    dispatch({
+                      type: 'RESOLVE_ROWS',
+                      rows: g.rows.filter((r) => !r.done).map(({ partKey, setNum }) => ({ partKey, setNum })),
+                    })
+                  }
+                >
+                  All found
+                </button>
+              )}
             </div>
             <div className="picking-list">
               {g.rows.map((r) => (

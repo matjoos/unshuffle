@@ -15,7 +15,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - [x] M3 Versioned state migration framework (`migrateState`, fills defaults) + tests (selectors stay in src/state.js; no separate src/logic needed)
 - [x] M4 TODO quick wins: clickable set names (SetLink), Hide done shared setting (persisted, on Picking/Set/Summary progress), Found button in Summary By set, pluralisation
 - [x] M5 Unified Parts view (group by Set|Color, filter Unresolved|Missing|All, scope set/color, hide done); ColorsScreen stays landing; persist settings
-- [ ] M6 Part search; undo stack for marks; bulk actions (found all needed / mark whole set built / partly built sets)
+- [x] M6 Part search; global undo stack; bulk 'All found' per group (scope to a set = mark whole set built, for partly built sets)
 - [ ] M7 First-run API-key guidance; manual-add missing part; shared-parts across sets view; spare parts/minifigs handling; alternate colours
 - [ ] M8 Performance for huge inventories; mobile/tablet polish; nice-to-haves (chip images, set hero, deep-link URLs); decide on `worker/`
 - [ ] M9 Stabilise, README, final report, PR
@@ -26,6 +26,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - Run 2 finished: shipped M3+M4. hideDone is now a persisted top-level state field (no version bump; migrateState fills defaults). Summary 'Hide done sets' hides completed sets in Progress (missing rows are by definition unfinished). Credit chips in By color are not set links (they are actions). Verified: lint, 31 unit, 12 e2e pass, screenshot viewed. Next: M5 unified Parts view. (started 2026-09-30T09:11:33Z.
 - Run 3 started 2026-09-30T12:16Z. Shipped M5: PartsScreen replaces Picking/SetScreen (set+colour scope selects, group by set|colour, filter All|Unresolved|Missing, hide done, 'Found it' on missing rows); Summary keeps progress/export and links to Parts (missing filter). State gained `view` (persisted; old 'picking'/'set' screens migrate to 'parts', tested). Verified: lint, build, 36 unit, 14 e2e, phone screenshot viewed (group-by pill tint looks slightly odd; polish in M8). Next: M6. Run 3 finished.
 - Run 4 started 2026-09-30T15:11Z.
+- Run 4 finished: shipped M6. view.query (search name/part no./BL id), state.history undo snapshots (max 50, session-only, stripped from storage/export), RESOLVE_ROWS bulk, floating UndoBar, 'All found' in group headers. Verified: lint, 38 unit, 17 e2e, phone screenshot viewed (looks fine). Next: M7.
 ## Known issues / decisions
 - Progress-bar labels truncate on phone (fix in M8 polish).
 - Screen name is persisted in state, so reload resumes on the last screen (kept).

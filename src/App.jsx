@@ -5,6 +5,7 @@ import SetupScreen from './components/SetupScreen.jsx'
 import ColorsScreen from './components/ColorsScreen.jsx'
 import PartsScreen from './components/PartsScreen.jsx'
 import SummaryScreen from './components/SummaryScreen.jsx'
+import UndoBar from './components/UndoBar.jsx'
 import './App.css'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         {state.screen === 'parts' && <PartsScreen />}
         {state.screen === 'summary' && <SummaryScreen />}
       </main>
+      <UndoBar />
       <Footer />
     </>
   )

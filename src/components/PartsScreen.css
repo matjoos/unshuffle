@@ -227,3 +227,18 @@
   cursor: pointer;
   user-select: none;
 }
+
+.parts-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.parts-group-all {
+  margin-left: 8px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}

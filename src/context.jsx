@@ -14,7 +14,8 @@ export function AppProvider({ children }) {
   useEffect(() => {
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+      const { history: _, ...persist } = state
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(persist))
     }, 500)
   }, [state])
 

@@ -211,3 +211,49 @@ describe('parts view', () => {
     expect(s).toMatchObject({ screen: 'parts', view: { filter: 'missing', setNum: null } })
   })
 })
+
+describe('undo history, search and bulk resolve', () => {
+  const inv = () => ({
+    a: { name: 'Brick 2 x 4', partNum: '3001', blPartNum: '3001', colorId: 5, colorName: 'Red', sets: { '1-1': { needed: 3, found: 1, missing: 1 }, '2-1': { needed: 2, found: 0, missing: 0 } } },
+    b: { name: 'Plate 1 x 2', partNum: '3023', colorId: 1, colorName: 'Blue', sets: { '1-1': { needed: 4, found: 0, missing: 0 } } },
+  })
+  const base = { ...initialState, inventory: inv() }
+
+  it('UNDO_LAST restores the previous inventory, repeatedly', () => {
+    let s = reducer(base, { type: 'MARK_FOUND', partKey: 'b', setNum: '1-1' })
+    s = reducer(s, { type: 'MARK_MISSING', partKey: 'b', setNum: '1-1' })
+    expect(s.history).toHaveLength(2)
+    s = reducer(s, { type: 'UNDO_LAST' })
+    expect(s.inventory.b.sets['1-1']).toMatchObject({ found: 1, missing: 0 })
+    s = reducer(s, { type: 'UNDO_LAST' })
+    expect(s.inventory).toEqual(inv())
+    expect(reducer(s, { type: 'UNDO_LAST' })).toBe(s)
+  })
+
+  it('no-op marks do not add history; history is bounded and not exported/migrated', () => {
+    const full = reducer(base, { type: 'MARK_FOUND', partKey: 'a', setNum: '1-1' })
+    const noop = reducer(full, { type: 'MARK_FOUND', partKey: 'a', setNum: '1-1' })
+    expect(noop.history).toHaveLength(1)
+    let s = base
+    for (let i = 0; i < 80; i++) s = reducer(s, { type: i % 2 ? 'UNDO_FOUND' : 'MARK_FOUND', partKey: 'b', setNum: '1-1' })
+    expect(s.history.length).toBeLessThanOrEqual(50)
+    expect(migrateState({ ...s, history: [1, 2] }).history).toEqual([])
+  })
+
+  it('RESOLVE_ROWS marks only remaining units as found, one undo step', () => {
+    const rows = [{ partKey: 'a', setNum: '1-1' }, { partKey: 'b', setNum: '1-1' }, { partKey: 'zz', setNum: 'x' }]
+    const s = reducer(base, { type: 'RESOLVE_ROWS', rows })
+    expect(s.inventory.a.sets['1-1']).toEqual({ needed: 3, found: 2, missing: 1 })
+    expect(s.inventory.b.sets['1-1']).toEqual({ needed: 4, found: 4, missing: 0 })
+    expect(reducer(s, { type: 'UNDO_LAST' }).inventory).toEqual(inv())
+    expect(reducer(s, { type: 'RESOLVE_ROWS', rows })).toBe(s)
+  })
+
+  it('query filters rows by name, part number and BrickLink id', () => {
+    const q = (query) => selectPartRows(base.inventory, { ...initialState.view, query }).map((r) => r.partKey + r.setNum)
+    expect(q('plate')).toEqual(['b1-1'])
+    expect(q('3001')).toEqual(['a1-1', 'a2-1'])
+    expect(q('  ')).toHaveLength(3)
+    expect(q('nothing')).toEqual([])
+  })
+})
