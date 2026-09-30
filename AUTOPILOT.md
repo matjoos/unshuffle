@@ -1,7 +1,7 @@
 # AUTOPILOT — unshuffle
 
 Status: ACTIVE
-Runs: 2 / 12 (cap 12)   Branch: `autopilot`   Setup: `tools/cloud-setup.sh`
+Runs: 3 / 12 (cap 12)   Branch: `autopilot`   Setup: `tools/cloud-setup.sh`
 
 ## Definition of done
 1. No open items in `TODO.md` (each implemented or closed with a reason).
@@ -24,6 +24,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - Run 1 started 2026-09-30 (UTC). Shipped M1: reducer/selectors moved to src/state.js; 27 unit tests (api w/ mocked fetch + fixtures, reducer, selectors, persistence/import, BL XML/CSV); CI workflow. Verified: lint, build, vitest pass. Also shipped M2: Playwright (phone Pixel 7 + desktop) 5 flows x2 pass, screenshots viewed (phone picking, desktop summary look OK; fixture images are 1px so appear as blank). `npm test` = vitest + playwright; playwright.config.js auto-falls back to preinstalled /opt/pw-browsers chromium. Next: M3. Run 1 finished.
 
 - Run 2 finished: shipped M3+M4. hideDone is now a persisted top-level state field (no version bump; migrateState fills defaults). Summary 'Hide done sets' hides completed sets in Progress (missing rows are by definition unfinished). Credit chips in By color are not set links (they are actions). Verified: lint, 31 unit, 12 e2e pass, screenshot viewed. Next: M5 unified Parts view. (started 2026-09-30T09:11:33Z.
+- Run 3 started 2026-09-30T12:16Z.
 ## Known issues / decisions
 - Progress-bar labels truncate on phone (fix in M8 polish).
 - Screen name is persisted in state, so reload resumes on the last screen (kept).
