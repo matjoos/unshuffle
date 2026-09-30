@@ -76,7 +76,7 @@ chips. That single action surface replaces the two code paths we have now
 - [ ] Show part image in the By color credit chips — easier to recognize
       than names for duplicates.
 - [x] Remember the last group-by and filter settings per-session.
-- [ ] "Manually add missing part" escape hatch for cases like the Panda
+- [x] "Manually add missing part" escape hatch for cases like the Panda
       issue (Rebrickable inventory lists a piece not actually in the bag).
 - [ ] Per-set image in SetScreen header is tiny. Consider a larger hero
       image on the SetScreen.

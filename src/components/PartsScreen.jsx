@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useAppState } from '../context.jsx'
 import { selectPartRows, getSetProgress, isSetComplete } from '../state.js'
 import SetLink from './SetLink.jsx'
@@ -169,6 +169,14 @@ export default function PartsScreen() {
             ))}
           </div>
         </div>
+        <label className="set-screen-toggle">
+          <input
+            type="checkbox"
+            checked={!!view.shared}
+            onChange={(e) => setView({ shared: e.target.checked })}
+          />
+          Shared by several sets
+        </label>
         {filter === 'all' && (
           <label className="set-screen-toggle">
             <input
@@ -180,6 +188,8 @@ export default function PartsScreen() {
           </label>
         )}
       </div>
+
+      <ManualAdd sets={sets} colors={colors} defaultSet={setNum} defaultColor={colorId} />
 
       {orderedGroups.map((g) => {
         const undone = g.rows.filter((r) => !r.done).length
@@ -237,5 +247,50 @@ export default function PartsScreen() {
         </div>
       )}
     </div>
+  )
+}
+
+// "Add a missing part": for pieces the inventory doesn't list (or has too few of).
+function ManualAdd({ sets, colors, defaultSet, defaultColor }) {
+  const { dispatch } = useAppState()
+  const setNums = Object.keys(sets)
+  const [partNum, setPartNum] = useState('')
+  const [name, setName] = useState('')
+  const [sn, setSn] = useState(defaultSet || setNums[0] || '')
+  const [cid, setCid] = useState(defaultColor ?? colors[0]?.colorId ?? '')
+  const [qty, setQty] = useState(1)
+  const [added, setAdded] = useState(null)
+  const color = colors.find((c) => c.colorId === Number(cid))
+  const ok = partNum.trim() && color && sets[sn]
+
+  function submit(e) {
+    e.preventDefault()
+    if (!ok) return
+    dispatch({
+      type: 'ADD_MANUAL_PART', setNum: sn, partNum, name,
+      colorId: color.colorId, colorName: color.colorName, colorHex: color.colorHex,
+      quantity: Number(qty),
+    })
+    setAdded(`${partNum.trim()} (${color.colorName}) ×${Math.max(1, Math.floor(qty) || 1)}`)
+    setPartNum(''); setName(''); setQty(1)
+  }
+
+  return (
+    <details className="parts-manual">
+      <summary>Add a missing part manually</summary>
+      <form onSubmit={submit}>
+        <input aria-label="Part number" placeholder="Part number, e.g. 3001" value={partNum} onChange={(e) => setPartNum(e.target.value)} />
+        <input aria-label="Part name" placeholder="Name (optional)" value={name} onChange={(e) => setName(e.target.value)} />
+        <select aria-label="Manual set" value={sn} onChange={(e) => setSn(e.target.value)}>
+          {setNums.map((n) => <option key={n} value={n}>{sets[n].name} ({n})</option>)}
+        </select>
+        <select aria-label="Manual color" value={cid} onChange={(e) => setCid(e.target.value)}>
+          {colors.map((c) => <option key={c.colorId} value={c.colorId}>{c.colorName}</option>)}
+        </select>
+        <input aria-label="Quantity" type="number" min="1" value={qty} onChange={(e) => setQty(e.target.value)} />
+        <button type="submit" className="btn-accent" disabled={!ok}>Add as missing</button>
+        {added && <p className="setup-help">Added {added} as missing.</p>}
+      </form>
+    </details>
   )
 }

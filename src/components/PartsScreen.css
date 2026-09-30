@@ -242,3 +242,28 @@
   padding: 6px 10px;
   white-space: nowrap;
 }
+
+.parts-manual {
+  margin: 8px 0 12px;
+  font-size: 14px;
+}
+.parts-manual summary {
+  cursor: pointer;
+  color: var(--text-muted);
+}
+.parts-manual form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+.parts-manual form > button,
+.parts-manual form > p {
+  grid-column: 1 / -1;
+}
+.parts-manual form input,
+.parts-manual form select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}

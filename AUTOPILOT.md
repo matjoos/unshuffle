@@ -16,7 +16,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - [x] M4 TODO quick wins: clickable set names (SetLink), Hide done shared setting (persisted, on Picking/Set/Summary progress), Found button in Summary By set, pluralisation
 - [x] M5 Unified Parts view (group by Set|Color, filter Unresolved|Missing|All, scope set/color, hide done); ColorsScreen stays landing; persist settings
 - [x] M6 Part search; global undo stack; bulk 'All found' per group (scope to a set = mark whole set built, for partly built sets)
-- [ ] M7 First-run API-key guidance; manual-add missing part; shared-parts across sets view; spare parts/minifigs handling; alternate colours
+- [x] M7 First-run API-key guidance; manual-add missing part; shared-parts filter; spares ignored/minifig parts included (decision). Alternate colours deferred (see issues)
 - [ ] M8 Performance for huge inventories; mobile/tablet polish; nice-to-haves (chip images, set hero, deep-link URLs); decide on `worker/`
 - [ ] M9 Stabilise, README, final report, PR
 
@@ -28,7 +28,10 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - Run 4 started 2026-09-30T15:11Z.
 - Run 4 finished: shipped M6. view.query (search name/part no./BL id), state.history undo snapshots (max 50, session-only, stripped from storage/export), RESOLVE_ROWS bulk, floating UndoBar, 'All found' in group headers. Verified: lint, 38 unit, 17 e2e, phone screenshot viewed (looks fine). Next: M7.
 - Run 5 started 2026-09-30T18:11Z.
+- Run 5 finished: shipped M7 (API-key steps on setup, view.shared filter, ADD_MANUAL_PART w/ undo, README). Verified: lint, build, 41 unit, 22 e2e, phone screenshot viewed. Next: M8.
 ## Known issues / decisions
 - Progress-bar labels truncate on phone (fix in M8 polish).
 - Screen name is persisted in state, so reload resumes on the last screen (kept).
 - worker/ is unused by src (to decide in M8).
+- Alternate colours/substitutes not implemented; consider a small note in M8 or close as out of scope in final report.
+- TODO.md manual-add item ticked this run.

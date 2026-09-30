@@ -93,6 +93,8 @@ export default function SetupScreen() {
           id="api-key"
           type="text"
           placeholder="Your API key"
+          autoComplete="off"
+          spellCheck={false}
           value={state.apiKey}
           onChange={(e) => dispatch({ type: 'SET_API_KEY', apiKey: e.target.value })}
         />
@@ -102,6 +104,13 @@ export default function SetupScreen() {
             rebrickable.com/api
           </a>
         </p>
+        {!state.apiKey && (
+          <ol className="setup-steps">
+            <li>Create a free account at rebrickable.com.</li>
+            <li>Open <em>Settings → API</em> and generate a key.</li>
+            <li>Paste it above. It is stored only in this browser and sent only to Rebrickable.</li>
+          </ol>
+        )}
       </div>
 
       {state.apiKey && (

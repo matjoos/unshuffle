@@ -11,7 +11,7 @@ export const initialState = {
   activeSetNum: null,
   hideDone: false,
   // Parts view: optional set/colour scope, grouping axis and row filter.
-  view: { setNum: null, colorId: null, groupBy: 'set', filter: 'all', query: '' },
+  view: { setNum: null, colorId: null, groupBy: 'set', filter: 'all', query: '', shared: false },
   // Recent inventory snapshots for Undo. Session-only: never persisted/exported.
   history: [],
 }
@@ -19,7 +19,7 @@ export const initialState = {
 const HISTORY_LIMIT = 50
 const INVENTORY_ACTIONS = new Set([
   'MARK_FOUND', 'MARK_MISSING', 'UNDO_FOUND', 'UNDO_MISSING',
-  'CONVERT_MISSING_TO_FOUND', 'RESOLVE_ROWS',
+  'CONVERT_MISSING_TO_FOUND', 'RESOLVE_ROWS', 'ADD_MANUAL_PART',
 ])
 
 // Each entry upgrades a state of version N to N+1. Version 1 is the shape
@@ -235,6 +235,31 @@ function baseReducer(state, action) {
       return changed ? { ...state, inventory } : state
     }
 
+    // Escape hatch: a part that is not in the Rebrickable inventory (or extra
+    // copies of one that is) and is known to be missing from a set.
+    case 'ADD_MANUAL_PART': {
+      const { setNum, partNum, name, colorId, colorName, colorHex, quantity } = action
+      const qty = Math.max(1, Math.floor(quantity) || 1)
+      const num = String(partNum).trim()
+      if (!num || !state.sets[setNum]) return state
+      const key = `${colorId}:${num}`
+      const entry = state.inventory[key] || {
+        partNum: num, blPartNum: null, name: name?.trim() || `Part ${num}`,
+        colorId, colorName, colorHex, imgUrl: null, manual: true, sets: {},
+      }
+      const sd = entry.sets[setNum] || { needed: 0, found: 0, missing: 0 }
+      return {
+        ...state,
+        inventory: {
+          ...state.inventory,
+          [key]: {
+            ...entry,
+            sets: { ...entry.sets, [setNum]: { ...sd, needed: sd.needed + qty, missing: sd.missing + qty } },
+          },
+        },
+      }
+    }
+
     case 'SET_HIDE_DONE':
       return { ...state, hideDone: !!action.value }
 
@@ -367,6 +392,7 @@ export function selectPartRows(inventory, view, hideDone = false) {
   for (const [partKey, entry] of Object.entries(inventory)) {
     if (colorId != null && entry.colorId !== colorId) continue
     if (q && !`${entry.name} ${entry.partNum} ${entry.blPartNum || ''}`.toLowerCase().includes(q)) continue
+    if (view.shared && Object.keys(entry.sets).length < 2) continue
     for (const [sn, sd] of Object.entries(entry.sets)) {
       if (setNum && sn !== setNum) continue
       const remaining = sd.needed - sd.found - sd.missing

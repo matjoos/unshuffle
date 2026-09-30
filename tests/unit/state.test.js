@@ -257,3 +257,31 @@ describe('undo history, search and bulk resolve', () => {
     expect(q('nothing')).toEqual([])
   })
 })
+
+describe('shared filter and manual parts', () => {
+  const v = (o) => ({ ...initialState.view, ...o })
+  it('shared filter keeps only parts used by 2+ sets', () => {
+    const rows = selectPartRows(base().inventory, v({ shared: true }))
+    expect(rows.map((r) => `${r.partKey}@${r.setNum}`)).toEqual(['4:3001@A', '4:3001@B'])
+  })
+
+  it('ADD_MANUAL_PART creates a missing entry, merges on repeat, is undoable', () => {
+    const add = { type: 'ADD_MANUAL_PART', setNum: 'A', partNum: ' 9999 ', name: '', colorId: 1, colorName: 'Blue', colorHex: '0055BF', quantity: 2 }
+    let s = reducer(base(), add)
+    expect(s.inventory['1:9999']).toMatchObject({ partNum: '9999', name: 'Part 9999', manual: true })
+    expect(sd(s, '1:9999', 'A')).toEqual({ needed: 2, found: 0, missing: 2 })
+    s = reducer(s, add)
+    expect(sd(s, '1:9999', 'A')).toEqual({ needed: 4, found: 0, missing: 4 })
+    // extra copies of an existing part raise both needed and missing
+    s = reducer(s, { ...add, partNum: '3023', quantity: 1 })
+    expect(sd(s, '1:3023', 'A')).toEqual({ needed: 2, found: 0, missing: 1 })
+    s = reducer(s, { type: 'UNDO_LAST' })
+    expect(sd(s, '1:3023', 'A').needed).toBe(1)
+  })
+
+  it('ignores manual parts for unknown sets or empty numbers', () => {
+    const s = base()
+    expect(reducer(s, { type: 'ADD_MANUAL_PART', setNum: 'Z', partNum: '1', colorId: 1, quantity: 1 })).toBe(s)
+    expect(reducer(s, { type: 'ADD_MANUAL_PART', setNum: 'A', partNum: ' ', colorId: 1, quantity: 1 })).toBe(s)
+  })
+})

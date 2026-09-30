@@ -151,3 +151,31 @@ test('screenshot: parts view with search and undo bar', async ({ page }, info) =
   await page.locator('.part-card').first().getByRole('button', { name: '+Found' }).click()
   await page.screenshot({ path: `screenshots/${info.project.name}-parts-search-undo.png` })
 })
+
+test('first run shows API key guidance that disappears once a key is typed', async ({ page }) => {
+  await page.goto('./')
+  await expect(page.getByText('Settings → API')).toBeVisible()
+  await page.getByLabel('Rebrickable API Key').fill('k')
+  await expect(page.getByText('Settings → API')).toHaveCount(0)
+})
+
+test('shared filter and manual missing part', async ({ page }, info) => {
+  await addSets(page, ['31058', '31088'])
+  await page.getByRole('button', { name: /Red/ }).click()
+  await page.getByLabel('Scope color').selectOption('')
+  await page.getByRole('tab', { name: 'All', exact: true }).click()
+  const all = await page.locator('.part-card').count()
+  await page.getByLabel('Shared by several sets').check()
+  const shared = await page.locator('.part-card').count()
+  expect(shared).toBeGreaterThan(0)
+  expect(shared).toBeLessThan(all)
+  await page.getByLabel('Shared by several sets').uncheck()
+
+  await page.getByText('Add a missing part manually').click()
+  await page.getByLabel('Part number').fill('99999')
+  await page.getByRole('button', { name: 'Add as missing' }).click()
+  await expect(page.getByText(/Added 99999/)).toBeVisible()
+  await page.getByRole('tab', { name: /Missing/ }).click()
+  await expect(page.locator('.part-card', { hasText: '99999' })).toHaveCount(1)
+  await page.screenshot({ path: `screenshots/${info.project.name}-manual-add.png`, fullPage: true })
+})

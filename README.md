@@ -12,6 +12,8 @@ Parents with multiple LEGO sets mixed together know the pain: hundreds of pieces
 4. **Sort parts** — the app shows every piece of that color across all your sets, with images and quantities. Tap +Found or +Missing as you go
 5. **Export missing parts** — when you're done, download a BrickLink XML or CSV of everything you couldn't find
 
+Also in the Parts view: search by name/number, group by set or colour, a **Shared by several sets** filter (pick parts once for multiple sets), bulk "All found", Undo, and **Add a missing part manually** for pieces the inventory doesn't list. Spare parts are ignored; minifigure parts are included.
+
 Your progress is saved in your browser (localStorage), so you can close the tab and come back later.
 
 ## Getting started
