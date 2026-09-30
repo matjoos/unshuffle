@@ -23,6 +23,16 @@ npm run dev
 
 You'll need a free Rebrickable API key from [rebrickable.com/api](https://rebrickable.com/api/).
 
+## Tests
+
+```bash
+npm test          # unit (vitest) + end-to-end (Playwright, Chromium)
+npm run test:unit
+npm run test:e2e  # builds and serves the app; Rebrickable is mocked with fixtures in tests/fixtures
+```
+
+The sandbox helper `tools/cloud-setup.sh` installs dependencies.
+
 ## License
 
 [AGPL-3.0](LICENSE) — free to use, modify, and distribute, but if you run a modified version as a service, you must share your source code.

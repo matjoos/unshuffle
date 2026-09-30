@@ -11,7 +11,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 
 ## Milestones
 - [x] M1 Test harness: vitest+jsdom, fixtures (Rebrickable response shape), unit tests for reducer/export/api/selectors, CI workflow, `npm test` (state logic moved to src/state.js)
-- [ ] M2 Playwright e2e against fixtures (route-intercepted fetch), screenshots phone+desktop, `npm test` runs both
+- [x] M2 Playwright e2e against fixtures (route-intercepted fetch), screenshots phone+desktop, `npm test` runs both
 - [ ] M3 Extract pure logic to `src/logic` (selectors), versioned state migration framework + tests
 - [ ] M4 TODO quick wins: clickable set names, Hide done everywhere, mark Found in By set
 - [ ] M5 Unified Parts view (group by Set|Color, filter Unresolved|Missing|All, scope set/color, hide done); ColorsScreen stays landing; persist settings
@@ -21,7 +21,9 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - [ ] M9 Stabilise, README, final report, PR
 
 ## Log
-- Run 1 started 2026-09-30 (UTC). Shipped M1: reducer/selectors moved to src/state.js; 27 unit tests (api w/ mocked fetch + fixtures, reducer, selectors, persistence/import, BL XML/CSV); CI workflow. Verified: lint, build, vitest pass. Next: M2 Playwright (Chromium at /opt/pw-browsers). Run 1 finished.
+- Run 1 started 2026-09-30 (UTC). Shipped M1: reducer/selectors moved to src/state.js; 27 unit tests (api w/ mocked fetch + fixtures, reducer, selectors, persistence/import, BL XML/CSV); CI workflow. Verified: lint, build, vitest pass. Also shipped M2: Playwright (phone Pixel 7 + desktop) 5 flows x2 pass, screenshots viewed (phone picking, desktop summary look OK; fixture images are 1px so appear as blank). `npm test` = vitest + playwright; playwright.config.js auto-falls back to preinstalled /opt/pw-browsers chromium. Next: M3. Run 1 finished.
 
 ## Known issues / decisions
+- Copy nit: "1 parts left" pluralisation (fix in M4/M5).
+- Screen name is persisted in state, so reload resumes on the last screen (kept).
 - worker/ is unused by src (to decide in M8).

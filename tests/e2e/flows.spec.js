@@ -1,0 +1,83 @@
+import { test, expect, addSets } from './fixtures.js'
+
+test('setup: add sets, unknown set shows error, start sorting', async ({ page }, info) => {
+  await page.goto('./')
+  await page.getByLabel('Rebrickable API Key').fill('k')
+  await page.getByLabel('Add a set').fill('00000')
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await expect(page.getByText('Set not found')).toBeVisible()
+  await page.getByLabel('Add a set').fill('31058')
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await expect(page.getByText('Mighty Dinosaurs')).toBeVisible()
+  await page.screenshot({ path: `screenshots/${info.project.name}-setup.png` })
+})
+
+test('pick a colour, mark found/missing, undo, progress persists across reload', async ({ page }, info) => {
+  await addSets(page, ['31058', '31088'])
+  await page.screenshot({ path: `screenshots/${info.project.name}-colors.png` })
+  await page.getByRole('button', { name: /Red/ }).click()
+  // Red 2x4 appears for both sets
+  const cards = page.locator('.part-card')
+  await expect(cards).toHaveCount(2)
+  const first = cards.first()
+  await first.getByRole('button', { name: '+Found' }).click()
+  await expect(first.locator('.count-found')).toHaveText('Found: 1')
+  await first.getByRole('button', { name: '+Missing' }).click()
+  await expect(first.locator('.count-missing')).toHaveText('Missing: 1')
+  await first.getByRole('button', { name: '-Found' }).click()
+  await expect(first.locator('.count-found')).toHaveCount(0)
+  await page.screenshot({ path: `screenshots/${info.project.name}-picking.png` })
+
+  await page.waitForTimeout(700) // debounce of localStorage save
+  await page.reload()
+  // the app resumes on the screen it was left on
+  await expect(page.locator('.count-missing').first()).toHaveText('Missing: 1')
+})
+
+test('missing parts summary: credit to set chips and BrickLink export', async ({ page }, info) => {
+  await addSets(page, ['31058', '31088'])
+  await page.getByRole('button', { name: /Red/ }).click()
+  await page.locator('.part-card').nth(0).getByRole('button', { name: '+Missing' }).click()
+  await page.locator('.part-card').nth(1).getByRole('button', { name: '+Missing' }).click()
+  await page.getByRole('button', { name: /Colors/ }).click()
+  await page.getByRole('button', { name: 'View Missing Parts' }).click()
+  await expect(page.getByRole('heading', { name: 'Missing Parts (2)' })).toBeVisible()
+  await page.screenshot({ path: `screenshots/${info.project.name}-summary.png`, fullPage: true })
+  await page.getByRole('tab', { name: 'By color' }).click()
+  await page.locator('.summary-chip').first().click()
+  await expect(page.getByRole('heading', { name: 'Missing Parts (1)' })).toBeVisible()
+
+  const dl = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Export BrickLink XML' }).click()
+  const d = await dl
+  expect(d.suggestedFilename()).toBe('unshuffle-missing.xml')
+  const xml = await (await import('node:fs/promises')).readFile(await d.path(), 'utf8')
+  expect(xml).toContain('<ITEMID>3001</ITEMID>')
+  expect(xml).toContain('<COLOR>5</COLOR>')
+  expect(xml).toContain('<MINQTY>')
+})
+
+test('per-set screen with hide done toggle', async ({ page }) => {
+  await addSets(page, ['31058'])
+  await page.getByRole('button', { name: /Mighty Dinosaurs/ }).click()
+  await expect(page.locator('.part-card').first()).toBeVisible()
+  const total = await page.locator('.part-card').count()
+  expect(total).toBe(4)
+  await page.locator('.part-card').first().getByRole('button', { name: '+Found' }).click()
+  await page.getByLabel('Hide done').check()
+  await expect(page.locator('.part-card')).toHaveCount(4) // 4 of red still needed
+})
+
+test('export / import progress roundtrip', async ({ page }) => {
+  await addSets(page, ['31058'])
+  await page.getByRole('button', { name: /White/ }).click()
+  await page.locator('.part-card').first().getByRole('button', { name: '+Found' }).click()
+  const dl = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Export', exact: true }).click()
+  const path = await (await dl).path()
+  page.once('dialog', (d) => d.accept())
+  await page.getByRole('button', { name: 'Reset' }).click()
+  await expect(page.getByLabel('Rebrickable API Key')).toBeVisible()
+  await page.locator('input[type=file]').setInputFiles(path)
+  await expect(page.locator('.count-found')).toHaveText('Found: 1')
+})
