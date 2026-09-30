@@ -73,14 +73,14 @@ chips. That single action surface replaces the two code paths we have now
 
 ## Nice-to-haves (not urgent)
 
-- [ ] Show part image in the By color credit chips — easier to recognize
-      than names for duplicates.
+- [x] Show part image in the By color credit chips. Closed: the credit chips no
+      longer exist; every row in the unified Parts view is a PartCard with image.
 - [x] Remember the last group-by and filter settings per-session.
 - [x] "Manually add missing part" escape hatch for cases like the Panda
       issue (Rebrickable inventory lists a piece not actually in the bag).
-- [ ] Per-set image in SetScreen header is tiny. Consider a larger hero
+- [x] Per-set image in SetScreen header is tiny. Consider a larger hero
       image on the SetScreen.
-- [ ] After the SPA pivot: deep-linkable URLs (`#/set/41726-1` etc.).
+- [x] After the SPA pivot: deep-linkable URLs (`#/set/41726-1` etc.).
 
 ## Done
 

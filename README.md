@@ -16,6 +16,8 @@ Also in the Parts view: search by name/number, group by set or colour, a **Share
 
 Your progress is saved in your browser (localStorage), so you can close the tab and come back later.
 
+**Deep links:** the screen and Parts filters live in the URL hash (e.g. `#/parts?set=31058-1&filter=missing`), so Back works and views can be bookmarked. Large lists show 60 rows per group with a "Show more" button.
+
 ## Getting started
 
 ```bash

@@ -1,8 +1,9 @@
+import { memo } from 'react'
 import { useAppState } from '../context.jsx'
 import SetLink from './SetLink.jsx'
 import './PartCard.css'
 
-export default function PartCard({ partKey, entry, setNum, showSet = false, showColor = false }) {
+function PartCard({ partKey, entry, setNum, showSet = false, showColor = false }) {
   const { dispatch } = useAppState()
   const setData = entry.sets[setNum]
   const remaining = setData.needed - setData.found - setData.missing
@@ -88,3 +89,5 @@ export default function PartCard({ partKey, entry, setNum, showSet = false, show
     </div>
   )
 }
+
+export default memo(PartCard)

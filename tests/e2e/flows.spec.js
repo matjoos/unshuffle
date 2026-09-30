@@ -179,3 +179,46 @@ test('shared filter and manual missing part', async ({ page }, info) => {
   await expect(page.locator('.part-card', { hasText: '99999' })).toHaveCount(1)
   await page.screenshot({ path: `screenshots/${info.project.name}-manual-add.png`, fullPage: true })
 })
+
+test('deep links: URL follows the view, Back works, and a link opens the scope', async ({ page }) => {
+  await addSets(page, ['31058', '31088'])
+  await page.getByRole('button', { name: /Red/ }).click()
+  await expect(page).toHaveURL(/#\/parts\?.*color=/)
+  await page.getByRole('tab', { name: /Missing/ }).click()
+  await expect(page).toHaveURL(/filter=missing/)
+  await page.goBack()
+  await expect(page).not.toHaveURL(/filter=missing/)
+  await page.goto('./#/parts?filter=unresolved&group=color')
+  await expect(page.getByRole('tab', { name: /Unresolved/ })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tab', { name: 'By color' })).toHaveAttribute('aria-selected', 'true')
+})
+
+test('huge inventory renders a page of rows and "Show more" reveals the rest', async ({ page }) => {
+  await addSets(page, ['31058'])
+  await page.waitForFunction(() => Object.keys(localStorage).some((k) => localStorage.getItem(k).includes('"inventory"')))
+  await page.evaluate(() => {
+    const key = Object.keys(localStorage).find((k) => localStorage.getItem(k).includes('"inventory"'))
+    const s = JSON.parse(localStorage.getItem(key))
+    const setNum = Object.keys(s.sets)[0]
+    for (let i = 0; i < 400; i++) {
+      s.inventory[`bulk${i}:1`] = {
+        partNum: `bulk${i}`, name: `Bulk part ${i}`, colorId: 1, colorName: 'Blue', colorHex: '0055BF',
+        imgUrl: '', sets: { [setNum]: { needed: 1, found: 0, missing: 0 } },
+      }
+    }
+    localStorage.setItem(key, JSON.stringify(s))
+  })
+  await page.reload()
+  await page.getByRole('button', { name: /Blue/ }).click()
+  await expect(page.locator('.part-card').first()).toBeVisible()
+  expect(await page.locator('.part-card').count()).toBeLessThanOrEqual(60)
+  await page.getByRole('button', { name: /Show more/ }).click()
+  expect(await page.locator('.part-card').count()).toBeGreaterThan(60)
+})
+
+test('screenshot: set scope with hero image', async ({ page }, info) => {
+  await addSets(page, ['31058'])
+  await page.evaluate(() => { location.hash = '#/parts?set=31058-1&group=color' })
+  await expect(page.locator('.parts-hero')).toBeVisible()
+  await page.screenshot({ path: `screenshots/${info.project.name}-set-hero.png` })
+})

@@ -6,6 +6,9 @@ import PartCard from './PartCard.jsx'
 import ProgressBar from './ProgressBar.jsx'
 import './PartsScreen.css'
 
+// Rows rendered per group before "Show more" — keeps huge inventories snappy.
+export const PAGE = 60
+
 const FILTERS = [
   ['all', 'All'],
   ['unresolved', 'Unresolved'],
@@ -17,6 +20,7 @@ export default function PartsScreen() {
   const { state, dispatch } = useAppState()
   const { inventory, sets, hideDone, view } = state
   const { setNum, colorId, groupBy, filter } = view
+  const [shown, setShown] = useState({})
   const setView = (patch) => dispatch({ type: 'SET_VIEW', patch })
 
   const colors = useMemo(() => {
@@ -85,8 +89,7 @@ export default function PartsScreen() {
           &larr; Colors
         </button>
         <div className="parts-title">
-          {setInfo?.imgUrl && <img src={setInfo.imgUrl} alt="" className="parts-title-img" />}
-          {colorInfo && (
+                    {colorInfo && (
             <span className="parts-color-dot" style={{ backgroundColor: `#${colorInfo.colorHex}` }} />
           )}
           <span>
@@ -97,6 +100,9 @@ export default function PartsScreen() {
         <span className="parts-count">{left} left</span>
       </div>
 
+      {setInfo?.imgUrl && (
+        <img src={setInfo.imgUrl} alt={setInfo.name} className="parts-hero" />
+      )}
       {setNum && (
         <ProgressBar
           percent={getSetProgress(inventory, setNum)}
@@ -226,7 +232,7 @@ export default function PartsScreen() {
               )}
             </div>
             <div className="picking-list">
-              {g.rows.map((r) => (
+              {g.rows.slice(0, shown[g.key] ?? PAGE).map((r) => (
                 <PartCard
                   key={`${r.partKey}:${r.setNum}`}
                   partKey={r.partKey}
@@ -236,6 +242,14 @@ export default function PartsScreen() {
                   showColor={isSet && colorId == null}
                 />
               ))}
+              {g.rows.length > (shown[g.key] ?? PAGE) && (
+                <button
+                  className="parts-more"
+                  onClick={() => setShown((m) => ({ ...m, [g.key]: (m[g.key] ?? PAGE) + PAGE * 2 }))}
+                >
+                  Show more ({g.rows.length - (shown[g.key] ?? PAGE)} hidden)
+                </button>
+              )}
             </div>
           </div>
         )

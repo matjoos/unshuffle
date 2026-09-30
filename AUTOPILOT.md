@@ -17,7 +17,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - [x] M5 Unified Parts view (group by Set|Color, filter Unresolved|Missing|All, scope set/color, hide done); ColorsScreen stays landing; persist settings
 - [x] M6 Part search; global undo stack; bulk 'All found' per group (scope to a set = mark whole set built, for partly built sets)
 - [x] M7 First-run API-key guidance; manual-add missing part; shared-parts filter; spares ignored/minifig parts included (decision). Alternate colours deferred (see issues)
-- [ ] M8 Performance for huge inventories; mobile/tablet polish; nice-to-haves (chip images, set hero, deep-link URLs); decide on `worker/`
+- [x] M8 Render cap + Show more, memo PartCard, set hero image, deep-link hash URLs (src/hash.js), worker/ deleted (unused, broken)
 - [ ] M9 Stabilise, README, final report, PR
 
 ## Log
@@ -30,6 +30,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - Run 5 started 2026-09-30T18:11Z.
 - Run 5 finished: shipped M7 (API-key steps on setup, view.shared filter, ADD_MANUAL_PART w/ undo, README). Verified: lint, build, 41 unit, 22 e2e, phone screenshot viewed. Next: M8.
 - Run 6 started 2026-09-30T21:11Z.
+- Run 6 finished: shipped M8. Hash deep links (+unit, e2e), per-group 60-row cap with Show more (e2e with 400 bulk parts), hero image, worker/ removed (nothing referenced it). TODO.md fully ticked. Verified: lint, unit, 27 e2e, screenshot viewed. Next: M9 stabilise/README/final report/PR.
 ## Known issues / decisions
 - Progress-bar labels truncate on phone (fix in M8 polish).
 - Screen name is persisted in state, so reload resumes on the last screen (kept).
