@@ -30,3 +30,6 @@ APIkey
 *.njsproj
 *.sln
 *.sw?
+playwright-report
+test-results
+screenshots

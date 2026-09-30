@@ -1,10 +1,6 @@
 import { useMemo, useState } from 'react'
-import {
-  useAppState,
-  getSetProgress,
-  isSetComplete,
-  exportStateToFile,
-} from '../context.jsx'
+import { useAppState } from '../context.jsx'
+import { getSetProgress, isSetComplete, exportStateToFile } from '../state.js'
 import { fetchBrickLinkColorMap, fetchSetParts } from '../api.js'
 import { buildBrickLinkXML, buildCSV, downloadFile } from '../export.js'
 import ProgressBar from './ProgressBar.jsx'

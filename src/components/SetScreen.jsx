@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { useAppState, isSetComplete } from '../context.jsx'
+import { useAppState } from '../context.jsx'
+import { isSetComplete } from '../state.js'
 import PartCard from './PartCard.jsx'
 import ProgressBar from './ProgressBar.jsx'
 import './SetScreen.css'

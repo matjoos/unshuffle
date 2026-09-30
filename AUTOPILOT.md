@@ -10,7 +10,7 @@ Runs: 1 / 12 (cap 12)   Branch: `autopilot`   Setup: `tools/cloud-setup.sh`
 Constraints: localStorage shape changes need migration + test; JSON export/import stays compatible with current-version files; app stays static; no secrets.
 
 ## Milestones
-- [ ] M1 Test harness: vitest+jsdom, fixtures (Rebrickable response shape), unit tests for reducer/export/api/selectors, CI workflow, `npm test`
+- [x] M1 Test harness: vitest+jsdom, fixtures (Rebrickable response shape), unit tests for reducer/export/api/selectors, CI workflow, `npm test` (state logic moved to src/state.js)
 - [ ] M2 Playwright e2e against fixtures (route-intercepted fetch), screenshots phone+desktop, `npm test` runs both
 - [ ] M3 Extract pure logic to `src/logic` (selectors), versioned state migration framework + tests
 - [ ] M4 TODO quick wins: clickable set names, Hide done everywhere, mark Found in By set
@@ -21,7 +21,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - [ ] M9 Stabilise, README, final report, PR
 
 ## Log
-- Run 1 started 2026-09-30 (UTC)
+- Run 1 started 2026-09-30 (UTC). Shipped M1: reducer/selectors moved to src/state.js; 27 unit tests (api w/ mocked fetch + fixtures, reducer, selectors, persistence/import, BL XML/CSV); CI workflow. Verified: lint, build, vitest pass. Next: M2 Playwright (Chromium at /opt/pw-browsers). Run 1 finished.
 
 ## Known issues / decisions
 - worker/ is unused by src (to decide in M8).

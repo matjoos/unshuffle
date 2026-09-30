@@ -1,4 +1,5 @@
-import { useAppState, getSetProgress, getColorStats, isSetComplete } from '../context.jsx'
+import { useAppState } from '../context.jsx'
+import { getSetProgress, getColorStats, isSetComplete } from '../state.js'
 import ProgressBar from './ProgressBar.jsx'
 import ColorSwatch from './ColorSwatch.jsx'
 import './ColorsScreen.css'
