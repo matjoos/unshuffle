@@ -1,7 +1,7 @@
 # AUTOPILOT — unshuffle
 
 Status: ACTIVE
-Runs: 6 / 12 (cap 12)   Branch: `autopilot`   Setup: `tools/cloud-setup.sh`
+Runs: 7 / 12 (cap 12)   Branch: `autopilot`   Setup: `tools/cloud-setup.sh`
 
 ## Definition of done
 1. No open items in `TODO.md` (each implemented or closed with a reason).
@@ -31,6 +31,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - Run 5 finished: shipped M7 (API-key steps on setup, view.shared filter, ADD_MANUAL_PART w/ undo, README). Verified: lint, build, 41 unit, 22 e2e, phone screenshot viewed. Next: M8.
 - Run 6 started 2026-09-30T21:11Z.
 - Run 6 finished: shipped M8. Hash deep links (+unit, e2e), per-group 60-row cap with Show more (e2e with 400 bulk parts), hero image, worker/ removed (nothing referenced it). TODO.md fully ticked. Verified: lint, unit, 27 e2e, screenshot viewed. Next: M9 stabilise/README/final report/PR.
+- Run 7 started 2026-10-01T00:11Z.
 ## Known issues / decisions
 - Progress-bar labels truncate on phone (fix in M8 polish).
 - Screen name is persisted in state, so reload resumes on the last screen (kept).
