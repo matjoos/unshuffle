@@ -1,7 +1,9 @@
+import { memo } from 'react'
 import { useAppState } from '../context.jsx'
+import SetLink from './SetLink.jsx'
 import './PartCard.css'
 
-export default function PartCard({ partKey, entry, setNum }) {
+function PartCard({ partKey, entry, setNum, showSet = false, showColor = false }) {
   const { dispatch } = useAppState()
   const setData = entry.sets[setNum]
   const remaining = setData.needed - setData.found - setData.missing
@@ -19,7 +21,13 @@ export default function PartCard({ partKey, entry, setNum }) {
       <div className="part-card-info">
         <div className="part-card-name">{entry.name}</div>
         <div className="part-card-meta">
+          {showColor && <span>{entry.colorName} &middot;</span>}
           {entry.partNum}
+          {showSet && (
+            <span className="part-set-link">
+              &middot; <SetLink setNum={setNum} />
+            </span>
+          )}
           {/pr\d|pat\d/.test(entry.partNum) && (
             <span className="part-badge-printed">Printed</span>
           )}
@@ -54,6 +62,15 @@ export default function PartCard({ partKey, entry, setNum }) {
         ) : (
           <div className="part-card-done-label">Done</div>
         )}
+        {setData.missing > 0 && (
+          <button
+            className="btn-found"
+            title="Found one: move it from missing to found"
+            onClick={() => dispatch({ type: 'CONVERT_MISSING_TO_FOUND', partKey, setNum })}
+          >
+            Found it
+          </button>
+        )}
         {(setData.found > 0 || setData.missing > 0) && (
           <div className="part-card-undo">
             {setData.found > 0 && (
@@ -72,3 +89,5 @@ export default function PartCard({ partKey, entry, setNum }) {
     </div>
   )
 }
+
+export default memo(PartCard)

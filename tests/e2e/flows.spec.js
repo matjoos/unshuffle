@@ -1,0 +1,224 @@
+import { test, expect, addSets } from './fixtures.js'
+
+test('setup: add sets, unknown set shows error, start sorting', async ({ page }, info) => {
+  await page.goto('./')
+  await page.getByLabel('Rebrickable API Key').fill('k')
+  await page.getByLabel('Add a set').fill('00000')
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await expect(page.getByText('Set not found')).toBeVisible()
+  await page.getByLabel('Add a set').fill('31058')
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await expect(page.getByText('Mighty Dinosaurs')).toBeVisible()
+  await page.screenshot({ path: `screenshots/${info.project.name}-setup.png` })
+})
+
+test('pick a colour, mark found/missing, undo, progress persists across reload', async ({ page }, info) => {
+  await addSets(page, ['31058', '31088'])
+  await page.screenshot({ path: `screenshots/${info.project.name}-colors.png` })
+  await page.getByRole('button', { name: /Red/ }).click()
+  // Red 2x4 appears for both sets
+  const cards = page.locator('.part-card')
+  await expect(cards).toHaveCount(2)
+  const first = cards.first()
+  await first.getByRole('button', { name: '+Found' }).click()
+  await expect(first.locator('.count-found')).toHaveText('Found: 1')
+  await first.getByRole('button', { name: '+Missing' }).click()
+  await expect(first.locator('.count-missing')).toHaveText('Missing: 1')
+  await first.getByRole('button', { name: '-Found' }).click()
+  await expect(first.locator('.count-found')).toHaveCount(0)
+  await page.screenshot({ path: `screenshots/${info.project.name}-picking.png` })
+
+  await page.waitForTimeout(700) // debounce of localStorage save
+  await page.reload()
+  // the app resumes on the screen it was left on
+  await expect(page.locator('.count-missing').first()).toHaveText('Missing: 1')
+})
+
+test('missing parts summary: credit to set chips and BrickLink export', async ({ page }, info) => {
+  await addSets(page, ['31058', '31088'])
+  await page.getByRole('button', { name: /Red/ }).click()
+  await page.locator('.part-card').nth(0).getByRole('button', { name: '+Missing' }).click()
+  await page.locator('.part-card').nth(1).getByRole('button', { name: '+Missing' }).click()
+  await page.getByRole('button', { name: /Colors/ }).click()
+  await page.getByRole('button', { name: 'View Missing Parts' }).click()
+  await expect(page.getByRole('heading', { name: 'Missing Parts (2)' })).toBeVisible()
+  await page.screenshot({ path: `screenshots/${info.project.name}-summary.png`, fullPage: true })
+  await page.getByRole('button', { name: /Review/ }).click()
+  await expect(page.getByRole('tab', { name: /Missing/ })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.locator('.part-card')).toHaveCount(2)
+  await page.screenshot({ path: `screenshots/${info.project.name}-parts-missing.png`, fullPage: true })
+  await page.locator('.part-card').first().getByRole('button', { name: 'Found it' }).click()
+  await expect(page.locator('.part-card')).toHaveCount(1)
+  await page.getByRole('button', { name: /Colors/ }).click()
+  await page.getByRole('button', { name: 'View Missing Parts' }).click()
+  await expect(page.getByRole('heading', { name: 'Missing Parts (1)' })).toBeVisible()
+
+  const dl = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Export BrickLink XML' }).click()
+  const d = await dl
+  expect(d.suggestedFilename()).toBe('unshuffle-missing.xml')
+  const xml = await (await import('node:fs/promises')).readFile(await d.path(), 'utf8')
+  expect(xml).toContain('<ITEMID>3001</ITEMID>')
+  expect(xml).toContain('<COLOR>5</COLOR>')
+  expect(xml).toContain('<MINQTY>')
+})
+
+test('per-set screen with hide done toggle', async ({ page }) => {
+  await addSets(page, ['31058'])
+  await page.getByRole('button', { name: /Mighty Dinosaurs/ }).click()
+  await expect(page.locator('.part-card').first()).toBeVisible()
+  const total = await page.locator('.part-card').count()
+  expect(total).toBe(4)
+  await page.locator('.part-card').first().getByRole('button', { name: '+Found' }).click()
+  await page.getByLabel('Hide done').check()
+  await expect(page.locator('.part-card')).toHaveCount(4) // 4 of red still needed
+})
+
+test('export / import progress roundtrip', async ({ page }) => {
+  await addSets(page, ['31058'])
+  await page.getByRole('button', { name: /White/ }).click()
+  await page.locator('.part-card').first().getByRole('button', { name: '+Found' }).click()
+  const dl = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Export', exact: true }).click()
+  const path = await (await dl).path()
+  page.once('dialog', (d) => d.accept())
+  await page.getByRole('button', { name: 'Reset' }).click()
+  await expect(page.getByLabel('Rebrickable API Key')).toBeVisible()
+  await page.locator('input[type=file]').setInputFiles(path)
+  await expect(page.locator('.count-found')).toHaveText('Found: 1')
+})
+
+test('quick wins: set links, hide done on picking, found from By set', async ({ page }) => {
+  await addSets(page, ['31058', '31088'])
+  await page.getByRole('button', { name: /Red/ }).click()
+  await page.locator('.part-card').first().getByRole('button', { name: '+Found' }).click()
+  const before = await page.locator('.part-card').count()
+  await page.getByLabel('Hide done').check()
+  // one card may still be visible if it needed more than one
+  expect(await page.locator('.part-card').count()).toBeLessThanOrEqual(before)
+  await page.locator('.part-card').first().getByRole('button', { name: '+Missing' }).click()
+  // clicking a set name opens that set's screen
+  await page.locator('.parts-group-header .set-link').first().click()
+  await expect(page.getByLabel('Scope set')).not.toHaveValue('')
+  await expect(page.getByLabel('Scope color')).toHaveValue('')
+  await page.getByRole('button', { name: /Colors/ }).click()
+  await page.getByRole('button', { name: 'View Missing Parts' }).click()
+  await expect(page.getByRole('heading', { name: /Missing Parts \(1\)/ })).toBeVisible()
+  await page.getByRole('button', { name: /Review/ }).click()
+  await page.locator('.part-card').first().getByRole('button', { name: 'Found it' }).click()
+  await expect(page.getByText('No missing parts here.')).toBeVisible()
+})
+
+test('parts view: scope selects, group by and filter compose', async ({ page }, info) => {
+  await addSets(page, ['31058', '31088'])
+  await page.getByRole('button', { name: /Red/ }).click()
+  await expect(page.locator('.part-card')).toHaveCount(2)
+  await page.getByLabel('Scope color').selectOption({ label: 'All colors' })
+  const all = await page.locator('.part-card').count()
+  expect(all).toBeGreaterThan(2)
+  await page.getByRole('tab', { name: 'By color' }).click()
+  await expect(page.locator('.parts-group-header').first()).toBeVisible()
+  await page.screenshot({ path: `screenshots/${info.project.name}-parts-all.png` })
+  await page.getByRole('tab', { name: /^Unresolved/ }).click()
+  await page.locator('.part-card').first().getByRole('button', { name: '+Found' }).click()
+  expect(await page.locator('.part-card').count()).toBeLessThanOrEqual(all)
+  await page.getByRole('tab', { name: /^Missing/ }).click()
+  await expect(page.getByText('No missing parts here.')).toBeVisible()
+})
+
+test('search parts, bulk "All found", and global Undo', async ({ page }) => {
+  await addSets(page, ['31058', '31088'])
+  await page.getByRole('button', { name: /Red/ }).click()
+  await page.getByRole('combobox', { name: 'Scope color' }).selectOption('')
+  const all = await page.locator('.part-card').count()
+  await page.getByLabel('Search parts').fill('2 x 4')
+  const hits = await page.locator('.part-card').count()
+  expect(hits).toBeGreaterThan(0)
+  expect(hits).toBeLessThan(all)
+  await page.getByLabel('Search parts').fill('zzzz-none')
+  await expect(page.locator('.part-card')).toHaveCount(0)
+  await page.getByLabel('Search parts').fill('')
+  await page.getByRole('button', { name: 'All found' }).first().click()
+  await expect(page.getByRole('button', { name: /Undo/ })).toBeVisible()
+  await expect(page.getByText('✓ Done').first()).toBeVisible()
+  await page.getByRole('button', { name: /Undo/ }).click()
+  await expect(page.getByText('✓ Done')).toHaveCount(0)
+})
+
+test('screenshot: parts view with search and undo bar', async ({ page }, info) => {
+  await addSets(page, ['31058', '31088'])
+  await page.getByRole('button', { name: /Red/ }).click()
+  await page.locator('.part-card').first().getByRole('button', { name: '+Found' }).click()
+  await page.screenshot({ path: `screenshots/${info.project.name}-parts-search-undo.png` })
+})
+
+test('first run shows API key guidance that disappears once a key is typed', async ({ page }) => {
+  await page.goto('./')
+  await expect(page.getByText('Settings → API')).toBeVisible()
+  await page.getByLabel('Rebrickable API Key').fill('k')
+  await expect(page.getByText('Settings → API')).toHaveCount(0)
+})
+
+test('shared filter and manual missing part', async ({ page }, info) => {
+  await addSets(page, ['31058', '31088'])
+  await page.getByRole('button', { name: /Red/ }).click()
+  await page.getByLabel('Scope color').selectOption('')
+  await page.getByRole('tab', { name: 'All', exact: true }).click()
+  const all = await page.locator('.part-card').count()
+  await page.getByLabel('Shared by several sets').check()
+  const shared = await page.locator('.part-card').count()
+  expect(shared).toBeGreaterThan(0)
+  expect(shared).toBeLessThan(all)
+  await page.getByLabel('Shared by several sets').uncheck()
+
+  await page.getByText('Add a missing part manually').click()
+  await page.getByLabel('Part number').fill('99999')
+  await page.getByRole('button', { name: 'Add as missing' }).click()
+  await expect(page.getByText(/Added 99999/)).toBeVisible()
+  await page.getByRole('tab', { name: /Missing/ }).click()
+  await expect(page.locator('.part-card', { hasText: '99999' })).toHaveCount(1)
+  await page.screenshot({ path: `screenshots/${info.project.name}-manual-add.png`, fullPage: true })
+})
+
+test('deep links: URL follows the view, Back works, and a link opens the scope', async ({ page }) => {
+  await addSets(page, ['31058', '31088'])
+  await page.getByRole('button', { name: /Red/ }).click()
+  await expect(page).toHaveURL(/#\/parts\?.*color=/)
+  await page.getByRole('tab', { name: /Missing/ }).click()
+  await expect(page).toHaveURL(/filter=missing/)
+  await page.goBack()
+  await expect(page).not.toHaveURL(/filter=missing/)
+  await page.goto('./#/parts?filter=unresolved&group=color')
+  await expect(page.getByRole('tab', { name: /Unresolved/ })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tab', { name: 'By color' })).toHaveAttribute('aria-selected', 'true')
+})
+
+test('huge inventory renders a page of rows and "Show more" reveals the rest', async ({ page }) => {
+  await addSets(page, ['31058'])
+  await page.waitForFunction(() => Object.keys(localStorage).some((k) => localStorage.getItem(k).includes('"inventory"')))
+  await page.evaluate(() => {
+    const key = Object.keys(localStorage).find((k) => localStorage.getItem(k).includes('"inventory"'))
+    const s = JSON.parse(localStorage.getItem(key))
+    const setNum = Object.keys(s.sets)[0]
+    for (let i = 0; i < 400; i++) {
+      s.inventory[`bulk${i}:1`] = {
+        partNum: `bulk${i}`, name: `Bulk part ${i}`, colorId: 1, colorName: 'Blue', colorHex: '0055BF',
+        imgUrl: '', sets: { [setNum]: { needed: 1, found: 0, missing: 0 } },
+      }
+    }
+    localStorage.setItem(key, JSON.stringify(s))
+  })
+  await page.reload()
+  await page.getByRole('button', { name: /Blue/ }).click()
+  await expect(page.locator('.part-card').first()).toBeVisible()
+  expect(await page.locator('.part-card').count()).toBeLessThanOrEqual(60)
+  await page.getByRole('button', { name: /Show more/ }).click()
+  expect(await page.locator('.part-card').count()).toBeGreaterThan(60)
+})
+
+test('screenshot: set scope with hero image', async ({ page }, info) => {
+  await addSets(page, ['31058'])
+  await page.evaluate(() => { location.hash = '#/parts?set=31058-1&group=color' })
+  await expect(page.locator('.parts-hero')).toBeVisible()
+  await page.screenshot({ path: `screenshots/${info.project.name}-set-hero.png` })
+})

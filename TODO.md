@@ -5,15 +5,15 @@ Small items first, then design-level ideas.
 
 ## Quick wins
 
-- [ ] **Clickable set names everywhere.** In the missing-parts view (both By set
+- [x] **Clickable set names everywhere.** In the missing-parts view (both By set
       and By color groupings), set names and numbers should link to the
       per-set SetScreen. Same for any chip or header that references a set.
 
-- [ ] **"Hide done" filter everywhere.** The toggle already exists on
+- [x] **"Hide done" filter everywhere.** The toggle already exists on
       SetScreen. Add it to PickingScreen (hide parts where `found + missing
       >= needed`) and to SummaryScreen (hide rows with no remaining work).
 
-- [ ] **Mark parts off in Missing Parts → By set.** Currently this view is
+- [x] **Mark parts off in Missing Parts → By set.** Currently this view is
       read-only. The By color mode has the "Credit to: …" chips that
       convert missing→found; the By set mode should offer the same
       interaction on each row (a single "Found" button, since the set is
@@ -73,14 +73,14 @@ chips. That single action surface replaces the two code paths we have now
 
 ## Nice-to-haves (not urgent)
 
-- [ ] Show part image in the By color credit chips — easier to recognize
-      than names for duplicates.
-- [ ] Remember the last group-by and filter settings per-session.
-- [ ] "Manually add missing part" escape hatch for cases like the Panda
+- [x] Show part image in the By color credit chips. Closed: the credit chips no
+      longer exist; every row in the unified Parts view is a PartCard with image.
+- [x] Remember the last group-by and filter settings per-session.
+- [x] "Manually add missing part" escape hatch for cases like the Panda
       issue (Rebrickable inventory lists a piece not actually in the bag).
-- [ ] Per-set image in SetScreen header is tiny. Consider a larger hero
+- [x] Per-set image in SetScreen header is tiny. Consider a larger hero
       image on the SetScreen.
-- [ ] After the SPA pivot: deep-linkable URLs (`#/set/41726-1` etc.).
+- [x] After the SPA pivot: deep-linkable URLs (`#/set/41726-1` etc.).
 
 ## Done
 

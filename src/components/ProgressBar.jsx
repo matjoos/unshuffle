@@ -1,9 +1,11 @@
 import './ProgressBar.css'
 
-export default function ProgressBar({ label, percent, complete = false }) {
+export default function ProgressBar({ label, percent, complete = false, labelNode }) {
   return (
     <div className="progress-bar">
-      {label && <span className="progress-label">{label}</span>}
+      {(labelNode || label) && (
+        <span className="progress-label">{labelNode || label}</span>
+      )}
       <div className="progress-track">
         <div
           className="progress-fill"
