@@ -1,6 +1,17 @@
 # AUTOPILOT — unshuffle
 
-Status: ACTIVE
+# FINAL REPORT (run 7)
+
+**Built:** Unshuffle now has a unified Parts view (group by set|colour, filter Unresolved|Missing|All, scope to a set or colour, hide done, part search, shared-by-several-sets filter, bulk "All found" per group which also marks a whole set as built for partly built sets), global Undo, manual add of missing parts, first-run Rebrickable API-key guidance, deep-linkable hash URLs, render cap with "Show more" for huge inventories, set hero image, clickable set names, persisted settings, a versioned state migration (old `picking`/`set` screens migrate), and the broken `worker/` removed (nothing used it). Every TODO.md item is ticked or closed with a reason. The friendly "pick a colour" landing page is kept.
+
+**Verified:** `npm run lint`, `npm run build`, `npm test` (vitest unit tests + 28 Playwright e2e on phone and desktop viewports, Rebrickable mocked by fixtures in `tests/fixtures`) all pass on this branch. Screenshots were viewed in earlier runs. CI (`.github/workflows`) runs lint + build + tests on PRs; the deploy workflow is untouched.
+
+**Check by hand:** use a real Rebrickable key with a few real sets (fixtures are synthetic); try it on a real phone; load an old localStorage/export file from the current live version; the BrickLink Wanted List upload on bricklink.com.
+
+**Not done:** alternate colours/substitutes (out of scope: no reliable data in the Rebrickable inventory endpoint); progress-bar labels may truncate on very narrow phones.
+
+
+Status: DONE
 Runs: 7 / 12 (cap 12)   Branch: `autopilot`   Setup: `tools/cloud-setup.sh`
 
 ## Definition of done
@@ -18,7 +29,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - [x] M6 Part search; global undo stack; bulk 'All found' per group (scope to a set = mark whole set built, for partly built sets)
 - [x] M7 First-run API-key guidance; manual-add missing part; shared-parts filter; spares ignored/minifig parts included (decision). Alternate colours deferred (see issues)
 - [x] M8 Render cap + Show more, memo PartCard, set hero image, deep-link hash URLs (src/hash.js), worker/ deleted (unused, broken)
-- [ ] M9 Stabilise, README, final report, PR
+- [x] M9 Stabilise, README, final report, PR
 
 ## Log
 - Run 1 started 2026-09-30 (UTC). Shipped M1: reducer/selectors moved to src/state.js; 27 unit tests (api w/ mocked fetch + fixtures, reducer, selectors, persistence/import, BL XML/CSV); CI workflow. Verified: lint, build, vitest pass. Also shipped M2: Playwright (phone Pixel 7 + desktop) 5 flows x2 pass, screenshots viewed (phone picking, desktop summary look OK; fixture images are 1px so appear as blank). `npm test` = vitest + playwright; playwright.config.js auto-falls back to preinstalled /opt/pw-browsers chromium. Next: M3. Run 1 finished.
@@ -32,6 +43,7 @@ Constraints: localStorage shape changes need migration + test; JSON export/impor
 - Run 6 started 2026-09-30T21:11Z.
 - Run 6 finished: shipped M8. Hash deep links (+unit, e2e), per-group 60-row cap with Show more (e2e with 400 bulk parts), hero image, worker/ removed (nothing referenced it). TODO.md fully ticked. Verified: lint, unit, 27 e2e, screenshot viewed. Next: M9 stabilise/README/final report/PR.
 - Run 7 started 2026-10-01T00:11Z.
+- Run 7 finished: M9 verified (lint, build, 28 e2e + unit pass), final report written, status DONE, PR opened.
 ## Known issues / decisions
 - Progress-bar labels truncate on phone (fix in M8 polish).
 - Screen name is persisted in state, so reload resumes on the last screen (kept).
